@@ -1,12 +1,16 @@
 "use client";
 
+import Link from "next/link";
+import { DottedSurface } from "@/components/ui/dotted-surface";
+
 export default function Home() {
   const sendPrompt = (message: string) => {
     console.log(message);
   };
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
+      <DottedSurface />
       <style>{`
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -173,7 +177,7 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
             <a href="#">About</a>
           </li>
         </ul>
-        <button className="nav-cta">Get early access</button>
+        <Link href="/auth/login" className="nav-cta" style={{ textDecoration: 'none' }}>Get early access</Link>
       </nav>
 
       <section className="hero">
@@ -188,14 +192,9 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
           automatically. Built for Indian MSMEs that run on Tally.
         </p>
         <div className="hero-actions">
-          <button
-            className="btn-primary"
-            onClick={() =>
-              sendPrompt("Tell me more about Tavit pricing and onboarding")
-            }
-          >
+          <Link href="/auth/login" className="btn-primary" style={{ textDecoration: 'none' }}>
             Start free trial
-          </button>
+          </Link>
           <button
             className="btn-ghost"
             onClick={() =>
@@ -719,14 +718,9 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
           free.
         </p>
         <div className="cta-actions">
-          <button
-            className="btn-primary"
-            onClick={() =>
-              sendPrompt("I want early access to Tavit — sign me up")
-            }
-          >
+          <Link href="/auth/login" className="btn-primary" style={{ textDecoration: 'none' }}>
             Join the waitlist
-          </button>
+          </Link>
           <button
             className="btn-ghost"
             onClick={() =>

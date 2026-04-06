@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+:root {
+  /* === Tavit design tokens === */
+  --ink: #1e2118;
+  --olive: #5a7a3a;
+  --sage: #7ea860;
+  --cream: #e8ddb5;
+  --ink-light: #2e3320;
+  --olive-mid: #4a6630;
+  --sage-light: #9cc47a;
+  --cream-dark: #d4c490;
+  --surface: #1a1f14;
+  --surface-input: #111510;
+  --border-subtle: rgba(90,122,58,0.2);
+  --border-focus: rgba(126,168,96,0.6);
+  --text-muted: rgba(232,221,181,0.45);
+  --text-dim: rgba(232,221,181,0.65);
+
+  /* === shadcn-compatible semantic tokens (olive green) === */
+  --background: #f9f9f6;
+  --foreground: #1e2118;
+  --card: #ffffff;
+  --card-foreground: #1e2118;
+  --popover: #ffffff;
+  --popover-foreground: #1e2118;
+  --primary: #5a7a3a;
+  --primary-foreground: #ffffff;
+  --secondary: #e8ddb5;
+  --secondary-foreground: #3a5220;
+  --muted: #eef0ea;
+  --muted-foreground: #6b7061;
+  --accent: #dde4d0;
+  --accent-foreground: #1e2118;
+  --destructive: #e54d2e;
+  --destructive-foreground: #ffffff;
+  --border: #d4d8c8;
+  --input: #d4d8c8;
+  --ring: #7ea860;
+  --radius: 0.5rem;
+
+  /* charts */
+  --chart-1: #5a7a3a;
+  --chart-2: #9cc47a;
+  --chart-3: #dde4d0;
+  --chart-4: #c8daa8;
+  --chart-5: #4a6630;
+
+  /* sidebar */
+  --sidebar: #1a1f14;
+  --sidebar-foreground: #e8ddb5;
+  --sidebar-primary: #7ea860;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(126,168,96,0.12);
+  --sidebar-accent-foreground: #9cc47a;
+  --sidebar-border: rgba(90,122,58,0.15);
+  --sidebar-ring: #7ea860;
+}
+
+.dark {
+  --background: #111510;
+  --foreground: #e8ddb5;
+  --card: #1a1f14;
+  --card-foreground: #e8ddb5;
+  --popover: #1a1f14;
+  --popover-foreground: #e8ddb5;
+  --primary: #9cc47a;
+  --primary-foreground: #0e1a08;
+  --secondary: #2e3320;
+  --secondary-foreground: #9cc47a;
+  --muted: #242a1c;
+  --muted-foreground: #9aa090;
+  --accent: #2e3320;
+  --accent-foreground: #e8ddb5;
+  --destructive: #e54d2e;
+  --destructive-foreground: #ffffff;
+  --border: #2a3020;
+  --input: #2a3020;
+  --ring: #7ea860;
+  --radius: 0.5rem;
+
+  /* charts */
+  --chart-1: #9cc47a;
+  --chart-2: #2e3320;
+  --chart-3: #2a2a2a;
+  --chart-4: #3a4a28;
+  --chart-5: #9cc47a;
+
+  /* sidebar */
+  --sidebar: #0e1208;
+  --sidebar-foreground: #d4c490;
+  --sidebar-primary: #1d4ed8;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e2a14;
+  --sidebar-accent-foreground: #d4d8c8;
+  --sidebar-border: #1e2a14;
+  --sidebar-ring: #9aa090;
+}
+
+@theme inline {
+  --color-card: var(--card);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-radius: var(--radius);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-popover: var(--popover);
+  --color-primary: var(--primary);
+  --color-sidebar: var(--sidebar);
+  --color-secondary: var(--secondary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-destructive: var(--destructive);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-card-foreground: var(--card-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
