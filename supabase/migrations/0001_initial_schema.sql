@@ -53,6 +53,11 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Backfill profiles for users who signed up before this migration ran
+insert into public.profiles (id)
+select id from auth.users
+on conflict (id) do nothing;
+
 -- ── 2. companies ─────────────────────────────────────────────────────────────
 -- A company can have multiple GSTINs (multi-state). Multi-entity ready.
 -- All monetary values stored as INTEGER (paise) in feature tables — never FLOAT.

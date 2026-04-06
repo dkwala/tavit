@@ -86,10 +86,10 @@ export async function saveCompanyProfile(
   }
 
   // ── 4. Mark profile as onboarded ────────────────────────────────────────────
+  // upsert guards against the edge case where the trigger hasn't created the row yet
   const { error: profileError } = await supabase
     .from('profiles')
-    .update({ onboarded: true, updated_at: new Date().toISOString() })
-    .eq('id', user.id)
+    .upsert({ id: user.id, onboarded: true, updated_at: new Date().toISOString() })
 
   if (profileError) {
     console.error('profile update error', profileError)
