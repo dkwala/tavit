@@ -1,50 +1,30 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { parseTallyXml, type TallyParseResult } from '@/lib/tally/parser'
 
-type ParsedSummary = {
-  vouchers: number
-  ledgers: number
-  stockItems: number
-  companies: string[]
-  periodFrom: string | null
-  periodTo: string | null
-  fileName: string
-  fileSizeKb: number
-}
-
-function parseXmlSummary(xml: string, fileName: string, fileSize: number): ParsedSummary {
-  const count = (tag: string) => (xml.match(new RegExp(`<${tag}[\\s>]`, 'gi')) ?? []).length
-
-  // Extract company names
-  const companyMatches = [...xml.matchAll(/<COMPANYNAME[^>]*>([^<]+)<\/COMPANYNAME>/gi)]
-  const companies = [...new Set(companyMatches.map(m => m[1].trim()))].filter(Boolean)
-
-  // Extract dates from vouchers for period detection
-  const dateMatches = [...xml.matchAll(/<DATE>(\d{8})<\/DATE>/g)]
-  const dates = dateMatches.map(m => m[1]).sort()
-  const toDisplayDate = (d: string) =>
-    d.length === 8 ? `${d.slice(6)}/${d.slice(4, 6)}/${d.slice(0, 4)}` : null
-
-  return {
-    vouchers:   count('VOUCHER'),
-    ledgers:    count('LEDGER'),
-    stockItems: count('STOCKITEM'),
-    companies:  companies.length > 0 ? companies : ['Unknown company'],
-    periodFrom: dates.length > 0 ? toDisplayDate(dates[0]) : null,
-    periodTo:   dates.length > 0 ? toDisplayDate(dates[dates.length - 1]) : null,
-    fileName,
-    fileSizeKb: Math.round(fileSize / 1024),
-  }
-}
+type ParsedSummary = TallyParseResult
 
 type UploadState = 'idle' | 'dragging' | 'parsing' | 'preview' | 'importing' | 'done' | 'error'
+
+type Tab = 'summary' | 'ledgers' | 'entries'
+
+const ENTRY_BADGE: Record<string, { bg: string; color: string }> = {
+  'Sales':          { bg: 'rgba(90,122,58,0.1)',   color: '#5a7a3a' },
+  'Purchase':       { bg: 'rgba(200,160,50,0.1)',  color: '#8a6a10' },
+  'Credit Note':    { bg: 'rgba(90,122,58,0.08)',  color: '#5a7a3a' },
+  'Debit Note':     { bg: 'rgba(200,160,50,0.08)', color: '#8a6a10' },
+  'Sales Order':    { bg: 'rgba(90,122,58,0.08)',  color: '#5a7a3a' },
+  'Purchase Order': { bg: 'rgba(200,160,50,0.08)', color: '#8a6a10' },
+}
+const DEFAULT_BADGE = { bg: 'rgba(90,90,90,0.08)', color: '#6b7061' }
 
 export default function TallyImportPage() {
   const [state, setState]       = useState<UploadState>('idle')
   const [summary, setSummary]   = useState<ParsedSummary | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
   const [progress, setProgress] = useState(0)
+  const [activeTab, setActiveTab] = useState<Tab>('summary')
   const fileRef = useRef<HTMLInputElement>(null)
 
   const processFile = useCallback((file: File) => {
@@ -68,14 +48,19 @@ export default function TallyImportPage() {
         setState('error')
         return
       }
-      const parsed = parseXmlSummary(xml, file.name, file.size)
-      if (parsed.vouchers === 0 && parsed.ledgers === 0) {
-        setErrorMsg('No vouchers or ledgers found. Try exporting with "All Masters" and "All Vouchers" selected.')
+      try {
+        const parsed = parseTallyXml(xml, file.name, file.size)
+        if (parsed.vouchers === 0 && parsed.ledgers === 0) {
+          setErrorMsg('No vouchers or ledgers found. Try exporting with "All Masters" and "All Vouchers" selected.')
+          setState('error')
+          return
+        }
+        setSummary(parsed)
+        setState('preview')
+      } catch (err) {
+        setErrorMsg(err instanceof Error ? err.message : 'Could not parse the XML file.')
         setState('error')
-        return
       }
-      setSummary(parsed)
-      setState('preview')
     }
     reader.onerror = () => {
       setErrorMsg('Could not read the file. Please try again.')
@@ -117,11 +102,12 @@ export default function TallyImportPage() {
     setSummary(null)
     setErrorMsg('')
     setProgress(0)
+    setActiveTab('summary')
     if (fileRef.current) fileRef.current.value = ''
   }
 
   return (
-    <div style={{ padding: '40px', maxWidth: 760 }}>
+    <div style={{ padding: '40px', maxWidth: 860 }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 22, fontWeight: 500, color: '#1e2118', letterSpacing: '-0.4px', marginBottom: 6 }}>
@@ -133,7 +119,7 @@ export default function TallyImportPage() {
       </div>
 
       {/* How to export hint */}
-      {state === 'idle' || state === 'dragging' || state === 'error' ? (
+      {(state === 'idle' || state === 'dragging' || state === 'error') && (
         <div style={{
           background: '#fff', border: '0.5px solid #dde0cc',
           borderRadius: 10, padding: '14px 18px',
@@ -154,11 +140,11 @@ export default function TallyImportPage() {
               How to export from TallyPrime
             </div>
             <div style={{ fontSize: 12, color: '#6b7061', lineHeight: 1.6 }}>
-              Gateway of Tally → <strong>E: Export</strong> → Master & Transactions → Format: <strong>XML</strong> → Export
+              Gateway of Tally → <strong>E: Export</strong> → Master &amp; Transactions → Format: <strong>XML</strong> → Export
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
       {/* Drop zone */}
       {(state === 'idle' || state === 'dragging' || state === 'error') && (
@@ -281,8 +267,8 @@ export default function TallyImportPage() {
           {/* Summary cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
             {[
-              { label: 'Vouchers found', value: summary.vouchers.toLocaleString('en-IN'), accent: true },
-              { label: 'Ledgers found',  value: summary.ledgers.toLocaleString('en-IN'),  accent: false },
+              { label: 'Vouchers found', value: summary.vouchers.toLocaleString('en-IN'),   accent: true  },
+              { label: 'Ledgers found',  value: summary.ledgers.toLocaleString('en-IN'),    accent: false },
               { label: 'Stock items',    value: summary.stockItems.toLocaleString('en-IN'), accent: false },
             ].map(card => (
               <div key={card.label} style={{
@@ -300,32 +286,188 @@ export default function TallyImportPage() {
             ))}
           </div>
 
-          {/* Detail panel */}
-          <div style={{
-            background: '#fff', border: '0.5px solid #dde0cc',
-            borderRadius: 10, padding: '20px',
-            marginBottom: 24,
-          }}>
-            <div style={{ fontSize: 12, fontWeight: 500, color: '#6b7061', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
-              Import details
-            </div>
-            {[
-              { label: 'Company',    value: summary.companies.join(', ') },
-              { label: 'Period from', value: summary.periodFrom ?? 'Not detected' },
-              { label: 'Period to',   value: summary.periodTo   ?? 'Not detected' },
-              { label: 'File',       value: `${summary.fileName} (${summary.fileSizeKb} KB)` },
-            ].map(row => (
-              <div key={row.label} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-                padding: '10px 0', borderBottom: '0.5px solid #f0f1e8',
-              }}>
-                <span style={{ fontSize: 13, color: '#6b7061' }}>{row.label}</span>
-                <span style={{ fontSize: 13, color: '#1e2118', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
-                  {row.value}
+          {/* Voucher type chips */}
+          {summary.voucherTypes.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
+              {summary.voucherTypes.map(vt => (
+                <span key={vt.type} style={{
+                  background: '#f2f3eb', border: '0.5px solid #dde0cc',
+                  borderRadius: 6, fontSize: 11, padding: '4px 10px',
+                  color: '#1e2118', fontWeight: 500,
+                }}>
+                  {vt.type}{' '}
+                  <span style={{ color: '#7ea860' }}>{vt.count.toLocaleString('en-IN')}</span>
                 </span>
-              </div>
+              ))}
+            </div>
+          )}
+
+          {/* Tab bar */}
+          <div style={{
+            display: 'flex', borderBottom: '0.5px solid #dde0cc', marginBottom: 16,
+          }}>
+            {(['summary', 'ledgers', 'entries'] as Tab[]).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: '10px 16px', fontSize: 13, background: 'none', border: 'none',
+                  cursor: 'pointer', textTransform: 'capitalize',
+                  color: activeTab === tab ? '#1e2118' : '#9aa090',
+                  fontWeight: activeTab === tab ? 500 : 400,
+                  borderBottom: activeTab === tab ? '1.5px solid #7ea860' : '1.5px solid transparent',
+                  marginBottom: -1,
+                }}
+              >
+                {tab === 'ledgers'
+                  ? `Ledgers${summary.ledgerTotal > 0 ? ` (${summary.ledgerTotal.toLocaleString('en-IN')})` : ''}`
+                  : tab === 'entries'
+                  ? `Entries${summary.entryTotal > 0 ? ` (${summary.entryTotal.toLocaleString('en-IN')})` : ''}`
+                  : 'Summary'}
+              </button>
             ))}
           </div>
+
+          {/* Summary tab */}
+          {activeTab === 'summary' && (
+            <div style={{
+              background: '#fff', border: '0.5px solid #dde0cc',
+              borderRadius: 10, padding: '20px',
+              marginBottom: 24,
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 500, color: '#6b7061', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 16 }}>
+                Import details
+              </div>
+              {[
+                { label: 'Company',     value: summary.companies.join(', ') },
+                { label: 'Period from', value: summary.periodFrom ?? 'Not detected' },
+                { label: 'Period to',   value: summary.periodTo   ?? 'Not detected' },
+                { label: 'File',        value: `${summary.fileName} (${summary.fileSizeKb} KB)` },
+              ].map(row => (
+                <div key={row.label} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                  padding: '10px 0', borderBottom: '0.5px solid #f0f1e8',
+                }}>
+                  <span style={{ fontSize: 13, color: '#6b7061' }}>{row.label}</span>
+                  <span style={{ fontSize: 13, color: '#1e2118', fontWeight: 500, textAlign: 'right', maxWidth: '60%' }}>
+                    {row.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Ledgers tab */}
+          {activeTab === 'ledgers' && (
+            <div style={{
+              background: '#fff', border: '0.5px solid #dde0cc',
+              borderRadius: 10, overflow: 'hidden', marginBottom: 24,
+            }}>
+              {summary.ledgerTotal > 200 && (
+                <div style={{
+                  fontSize: 11, color: '#9aa090', padding: '8px 16px',
+                  borderBottom: '0.5px solid #f0f1e8', background: '#fafbf7',
+                }}>
+                  Showing 200 of {summary.ledgerTotal.toLocaleString('en-IN')} ledgers
+                </div>
+              )}
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f7f8f3', borderBottom: '0.5px solid #dde0cc' }}>
+                    {['Name', 'Parent Group', 'Opening Balance'].map((h, i) => (
+                      <th key={h} style={{
+                        fontSize: 11, fontWeight: 500, color: '#9aa090',
+                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                        padding: '10px 16px', textAlign: i === 2 ? 'right' : 'left',
+                      }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.ledgerList.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} style={{ fontSize: 13, color: '#9aa090', textAlign: 'center', padding: '32px' }}>
+                        No ledger masters found in this export.
+                      </td>
+                    </tr>
+                  ) : summary.ledgerList.map((l, i) => (
+                    <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafbf7', borderBottom: '0.5px solid #f0f1e8' }}>
+                      <td style={{ fontSize: 13, color: '#1e2118', padding: '10px 16px' }}>{l.name}</td>
+                      <td style={{ fontSize: 13, color: '#6b7061', padding: '10px 16px' }}>{l.parent || <span style={{ color: '#c8cdb8' }}>—</span>}</td>
+                      <td style={{ fontSize: 13, color: '#1e2118', padding: '10px 16px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                        {l.openingBalance || <span style={{ color: '#c8cdb8' }}>—</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Entries tab */}
+          {activeTab === 'entries' && (
+            <div style={{
+              background: '#fff', border: '0.5px solid #dde0cc',
+              borderRadius: 10, overflow: 'hidden', marginBottom: 24,
+            }}>
+              {summary.entryTotal > 500 && (
+                <div style={{
+                  fontSize: 11, color: '#9aa090', padding: '8px 16px',
+                  borderBottom: '0.5px solid #f0f1e8', background: '#fafbf7',
+                }}>
+                  Showing 500 of {summary.entryTotal.toLocaleString('en-IN')} entries
+                </div>
+              )}
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f7f8f3', borderBottom: '0.5px solid #dde0cc' }}>
+                    {['Date', 'Type', 'Voucher #', 'Party', 'Amount'].map((h, i) => (
+                      <th key={h} style={{
+                        fontSize: 11, fontWeight: 500, color: '#9aa090',
+                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                        padding: '10px 16px', textAlign: i === 4 ? 'right' : 'left',
+                        whiteSpace: 'nowrap',
+                      }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.entries.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ fontSize: 13, color: '#9aa090', textAlign: 'center', padding: '32px' }}>
+                        No sales or purchase entries found in this export.
+                      </td>
+                    </tr>
+                  ) : summary.entries.map((entry, i) => {
+                    const badge = ENTRY_BADGE[entry.voucherType] ?? DEFAULT_BADGE
+                    return (
+                      <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafbf7', borderBottom: '0.5px solid #f0f1e8' }}>
+                        <td style={{ fontSize: 12, color: '#6b7061', padding: '10px 16px', whiteSpace: 'nowrap' }}>{entry.date || '—'}</td>
+                        <td style={{ fontSize: 12, padding: '10px 16px' }}>
+                          <span style={{
+                            background: badge.bg, color: badge.color,
+                            fontSize: 11, fontWeight: 500,
+                            padding: '2px 8px', borderRadius: 4,
+                          }}>
+                            {entry.voucherType}
+                          </span>
+                        </td>
+                        <td style={{ fontSize: 12, color: '#9aa090', padding: '10px 16px', fontVariantNumeric: 'tabular-nums' }}>
+                          {entry.voucherNumber || <span style={{ color: '#c8cdb8' }}>—</span>}
+                        </td>
+                        <td style={{ fontSize: 13, color: '#1e2118', padding: '10px 16px', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {entry.party || <span style={{ color: '#9aa090' }}>—</span>}
+                        </td>
+                        <td style={{ fontSize: 13, color: '#1e2118', padding: '10px 16px', textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                          {entry.amount || <span style={{ color: '#c8cdb8' }}>—</span>}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Confirm button */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
