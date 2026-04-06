@@ -106,14 +106,29 @@ export default async function ReturnsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('gstin, company_name')
-    .eq('id', user.id)
+  const { data: member } = await supabase
+    .from('company_members')
+    .select('company_id, company:companies(name)')
+    .eq('user_id', user.id)
+    .limit(1)
     .single()
 
-  const filed    = MOCK_RETURNS.filter(r => r.status === 'filed')
-  const pending  = MOCK_RETURNS.filter(r => r.status !== 'filed')
+  const { data: primaryGstin } = member
+    ? await supabase
+        .from('gstins')
+        .select('gstin')
+        .eq('company_id', member.company_id)
+        .eq('status', 'active')
+        .limit(1)
+        .single()
+    : { data: null }
+
+  const company     = member?.company as unknown as { name: string } | null
+  const companyName = company?.name ?? '—'
+  const gstinLabel  = primaryGstin?.gstin ?? '—'
+
+  const filed   = MOCK_RETURNS.filter(r => r.status === 'filed')
+  const pending = MOCK_RETURNS.filter(r => r.status !== 'filed')
 
   return (
     <div style={{ padding: '40px 40px', maxWidth: 860 }}>
@@ -123,7 +138,7 @@ export default async function ReturnsPage() {
           GST Returns
         </h1>
         <p style={{ fontSize: 13, color: '#6b7061' }}>
-          {profile?.gstin} · {profile?.company_name}
+          {gstinLabel} · {companyName}
         </p>
       </div>
 
