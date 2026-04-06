@@ -11,13 +11,15 @@ export default async function DashboardLayout({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('company_name')
-    .eq('id', user.id)
+  const { data: member } = await supabase
+    .from('company_members')
+    .select('company:companies(name)')
+    .eq('user_id', user.id)
+    .limit(1)
     .single()
 
-  const companyName = profile?.company_name ?? 'My Company'
+  const company     = member?.company as unknown as { name: string } | null
+  const companyName = company?.name ?? 'My Company'
 
   return (
     <div style={{ minHeight: '100vh', background: '#f2f3eb', fontFamily: 'var(--font-geist-sans, sans-serif)', display: 'flex' }}>

@@ -23,8 +23,8 @@ function StatCard({ label, value, sub, accent }: { label: string; value: string;
 function TaskRow({ title, due, status }: { title: string; due: string; status: 'upcoming' | 'due' | 'done' }) {
   const colors = {
     upcoming: { bg: '#eef5e4', text: '#3a6020' },
-    due: { bg: '#f5ede2', text: '#8a4a10' },
-    done: { bg: '#e8eedd', text: '#4a6630' },
+    due:      { bg: '#f5ede2', text: '#8a4a10' },
+    done:     { bg: '#e8eedd', text: '#4a6630' },
   }
   const c = colors[status]
   return (
@@ -52,16 +52,30 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('company_name, gstin, onboarded')
-    .eq('id', user.id)
+  // Fetch the user's company membership + company details in one query
+  const { data: member } = await supabase
+    .from('company_members')
+    .select('company_id, company:companies(name, pan, state_code)')
+    .eq('user_id', user.id)
+    .limit(1)
     .single()
 
-  if (!profile?.onboarded) redirect('/onboarding')
+  if (!member) redirect('/onboarding')
 
-  const companyName = profile.company_name ?? 'your company'
-  const hour = new Date().getHours()
+  // Fetch the primary active GSTIN for the company
+  const { data: primaryGstin } = await supabase
+    .from('gstins')
+    .select('gstin, trade_name')
+    .eq('company_id', member.company_id)
+    .eq('status', 'active')
+    .limit(1)
+    .single()
+
+  const company     = member.company as unknown as { name: string; pan: string; state_code: string } | null
+  const companyName = company?.name ?? 'your company'
+  const gstinLabel  = primaryGstin?.gstin ?? '—'
+
+  const hour     = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
@@ -75,7 +89,7 @@ export default async function DashboardPage() {
         }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#7ea860' }} />
           <span style={{ fontSize: 11, color: '#5a7a3a', fontWeight: 500, letterSpacing: '0.05em' }}>
-            {profile.gstin}
+            {gstinLabel}
           </span>
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 500, color: '#1e2118', letterSpacing: '-0.5px', marginBottom: 6 }}>
@@ -91,40 +105,34 @@ export default async function DashboardPage() {
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: 16, marginBottom: 40,
       }}>
-        <StatCard label="ITC Available" value="₹2,14,800" sub="Updated 2 hrs ago" accent />
-        <StatCard label="Tax Payable" value="₹48,220" sub="GSTR-3B · Apr 2026" />
-        <StatCard label="Returns Filed" value="8 / 9" sub="1 due this month" />
-        <StatCard label="Mismatches" value="3" sub="In GSTR-2B vs 2A" />
+        <StatCard label="ITC Available"  value="₹2,14,800" sub="Updated 2 hrs ago" accent />
+        <StatCard label="Tax Payable"    value="₹48,220"   sub="GSTR-3B · Apr 2026" />
+        <StatCard label="Returns Filed"  value="8 / 9"     sub="1 due this month" />
+        <StatCard label="Mismatches"     value="3"         sub="In GSTR-2B vs 2A" />
       </div>
 
       {/* Two column content */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-        {/* Upcoming filings */}
-        <div style={{
-          background: '#fff', border: '0.5px solid #dde0cc',
-          borderRadius: 12, padding: '24px',
-        }}>
+        {/* Compliance calendar */}
+        <div style={{ background: '#fff', border: '0.5px solid #dde0cc', borderRadius: 12, padding: '24px' }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: '#1e2118', marginBottom: 20 }}>
             Compliance calendar
           </div>
-          <TaskRow title="GSTR-1 · Apr 2026" due="11 May 2026" status="upcoming" />
+          <TaskRow title="GSTR-1 · Apr 2026"  due="11 May 2026" status="upcoming" />
           <TaskRow title="GSTR-3B · Apr 2026" due="20 May 2026" status="upcoming" />
-          <TaskRow title="GSTR-1 · Mar 2026" due="11 Apr 2026" status="done" />
+          <TaskRow title="GSTR-1 · Mar 2026"  due="11 Apr 2026" status="done" />
           <TaskRow title="GSTR-3B · Mar 2026" due="20 Apr 2026" status="done" />
         </div>
 
         {/* Quick actions */}
-        <div style={{
-          background: '#1e2118', border: '0.5px solid rgba(90,122,58,0.2)',
-          borderRadius: 12, padding: '24px',
-        }}>
+        <div style={{ background: '#1e2118', border: '0.5px solid rgba(90,122,58,0.2)', borderRadius: 12, padding: '24px' }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: '#e8ddb5', marginBottom: 20 }}>
             Quick actions
           </div>
           {[
-            { label: 'Reconcile ITC', desc: 'Match GSTR-2A vs 2B', icon: '⇄' },
-            { label: 'Build GSTR-1', desc: 'Auto-fill from Tally data', icon: '↗' },
-            { label: 'Build GSTR-3B', desc: 'Compute tax payable', icon: '↗' },
+            { label: 'Reconcile ITC',  desc: 'Match GSTR-2A vs 2B',    icon: '⇄' },
+            { label: 'Build GSTR-1',   desc: 'Auto-fill from Tally data', icon: '↗' },
+            { label: 'Build GSTR-3B',  desc: 'Compute tax payable',     icon: '↗' },
           ].map(item => (
             <button
               key={item.label}
@@ -133,8 +141,7 @@ export default async function DashboardPage() {
                 border: '0.5px solid rgba(90,122,58,0.2)',
                 borderRadius: 8, padding: '12px 14px',
                 display: 'flex', alignItems: 'center', gap: 12,
-                cursor: 'pointer', marginBottom: 10,
-                transition: 'background 0.15s', textAlign: 'left',
+                cursor: 'pointer', marginBottom: 10, textAlign: 'left',
               }}
             >
               <span style={{ fontSize: 16, color: '#7ea860', width: 20, textAlign: 'center' }}>{item.icon}</span>
