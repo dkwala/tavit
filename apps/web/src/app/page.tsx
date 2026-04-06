@@ -9,7 +9,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: "relative" }}>
       <DottedSurface />
       <style>{`
 *{box-sizing:border-box;margin:0;padding:0}
@@ -177,12 +177,18 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
             <a href="#">About</a>
           </li>
         </ul>
-        <Link href="/auth/login" className="nav-cta" style={{ textDecoration: 'none' }}>Get early access</Link>
+        <Link
+          href="/auth/login"
+          className="nav-cta"
+          style={{ textDecoration: "none" }}
+        >
+          Start now
+        </Link>
       </nav>
 
       <section className="hero">
         <div className="hero-badge">
-          Now in early access · Varanasi & Prayagraj
+          Paid · Push to live · Varanasi & Prayagraj
         </div>
         <h1>
           Your enterprise, running on <em>autopilot</em>
@@ -192,8 +198,12 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
           automatically. Built for Indian MSMEs that run on Tally.
         </p>
         <div className="hero-actions">
-          <Link href="/auth/login" className="btn-primary" style={{ textDecoration: 'none' }}>
-            Start free trial
+          <Link
+            href="/auth/login"
+            className="btn-primary"
+            style={{ textDecoration: "none" }}
+          >
+            Get started
           </Link>
           <button
             className="btn-ghost"
@@ -370,7 +380,7 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
                 tables. Figures are computed using decimal-precise arithmetic —
                 never float errors.
               </div>
-              <span className="feat-badge fb-red">No vibe coding</span>
+              <span className="feat-badge fb-red">paid</span>
             </div>
             <div className="feat-card">
               <div className="feat-icon fi-dark">
@@ -714,12 +724,16 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
           Stop managing compliance. Let <em>Tavit</em> handle it.
         </h2>
         <p className="cta-sub">
-          Join the waitlist for early access. First 50 businesses get 3 months
-          free.
+          Paid and live. Set up your company, import Tally data, and file your
+          first return today.
         </p>
         <div className="cta-actions">
-          <Link href="/auth/login" className="btn-primary" style={{ textDecoration: 'none' }}>
-            Join the waitlist
+          <Link
+            href="/auth/login"
+            className="btn-primary"
+            style={{ textDecoration: "none" }}
+          >
+            Get started
           </Link>
           <button
             className="btn-ghost"
@@ -731,7 +745,7 @@ footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-b
           </button>
         </div>
         <div className="cta-trust">
-          No credit card · Cancel anytime · GSTN compliant
+          Live product · Cancel anytime · GSTN compliant
         </div>
       </section>
 
