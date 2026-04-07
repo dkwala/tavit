@@ -24,7 +24,7 @@ export async function verifyOtp(
   })
 
   if (error) {
-    return { error: 'Invalid or expired code. Try again or request a new one.' }
+    return { error: error.message }
   }
 
   // Session is now in cookies. proxy.ts will redirect to /onboarding if needed.

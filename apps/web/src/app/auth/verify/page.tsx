@@ -58,6 +58,7 @@ function VerifyContent() {
 
   const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const formRef = useRef<HTMLFormElement>(null)
 
   const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [countdown, setCountdown] = useState(30)
@@ -80,6 +81,10 @@ function VerifyContent() {
     setDigits(next)
     if (cleaned && index < 5) {
       inputRefs.current[index + 1]?.focus()
+    } else if (cleaned && index === 5) {
+      // All 6 digits filled — auto-submit
+      const allFilled = next.every(d => d.length === 1)
+      if (allFilled) formRef.current?.requestSubmit()
     }
   }
 
@@ -87,6 +92,8 @@ function VerifyContent() {
     if (e.key === 'Backspace' && !digits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }
+    // Prevent Enter from submitting a partial token
+    if (e.key === 'Enter') e.preventDefault()
   }
 
   function handlePaste(e: React.ClipboardEvent) {
@@ -154,7 +161,7 @@ function VerifyContent() {
             </span>
           </p>
 
-          <form action={action}>
+          <form ref={formRef} action={action}>
             <input type="hidden" name="email" value={email} />
             <input type="hidden" name="token" value={token} />
 
