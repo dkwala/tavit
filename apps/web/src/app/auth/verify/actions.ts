@@ -5,6 +5,19 @@ import { redirect } from 'next/navigation'
 
 export type VerifyState = { error?: string } | undefined
 
+function toErrorString(error: unknown): string {
+  if (!error) return 'Unknown error'
+  if (typeof error === 'string') return error
+  if (error instanceof Error) return error.message || error.toString()
+  try {
+    const s = JSON.stringify(error)
+    if (s === '{}' || s === 'null') return 'Invalid or expired code — try again or request a new one.'
+    return s
+  } catch {
+    return String(error)
+  }
+}
+
 export async function verifyOtp(
   _prevState: VerifyState,
   formData: FormData
@@ -24,7 +37,7 @@ export async function verifyOtp(
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: toErrorString(error) }
   }
 
   // Session is now in cookies. proxy.ts will redirect to /onboarding if needed.
@@ -37,6 +50,6 @@ export async function resendOtp(email: string): Promise<{ error?: string }> {
     email,
     options: { shouldCreateUser: true },
   })
-  if (error) return { error: error.message }
+  if (error) return { error: toErrorString(error) }
   return {}
 }
