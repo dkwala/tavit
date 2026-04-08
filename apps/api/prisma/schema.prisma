@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Auth & Core Tables (from Supabase initial schema)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// User profile — thin record linked to auth.users
+model Profile {
+  id        String   @id @db.Uuid
+  fullName  String?
+  onboarded Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+/// Company — multi-GSTIN ready, multi-entity support
+model Company {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  pan                  String   @db.Char(10)
+  stateCode            String   @db.Char(2) // e.g., '27' = Maharashtra
+  financialYearStart   Int      @default(4) // Month (4 = April)
+  tier                 String   @default("starter") // starter|growth|pro
+  createdAt            DateTime @default(now())
+  deletedAt            DateTime? // Soft-delete flag
+
+  members  CompanyMember[]
+  gstins   Gstin[]
+  taxCodes TaxCode[]
+  vouchers Voucher[]
+  stockItems StockItem[]
+  stockTransactions StockTransaction[]
+  journalEntries JournalEntry[]
+
+  @@map("companies")
+}
+
+/// Join table: Maps users to companies with roles
+model CompanyMember {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId String   @db.Uuid
+  userId    String   @db.Uuid
+  role      String   @default("owner") // owner|accountant|ca|viewer
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([userId])
+  @@map("company_members")
+}
+
+/// GSTIN — one per state, unique across all companies
+model Gstin {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId        String   @db.Uuid
+  gstin            String   @unique @db.Char(15)
+  tradeName        String?
+  stateCode        String   @db.Char(2) // First 2 chars of GSTIN
+  registrationType String   @default("regular") // regular|composition|sez|unregistered
+  status           String   @default("active") // active|cancelled|suspended
+  createdAt        DateTime @default(now())
+
+  company  Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vouchers Voucher[]
+
+  @@index([companyId])
+  @@map("gstins")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Invoicing & Tax Tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Tax codes — maps HSN/SAC codes to tax rates
+model TaxCode {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String   @db.Uuid
+  code        String   @unique // HSN/SAC code
+  description String
+  taxRate     Int // Basis points: 1800 = 18%
+  cgstRate    Int // Basis points: 900 = 9%
+  sgstRate    Int // Basis points: 900 = 9%
+  igstRate    Int // Basis points: 1800 = 18%
+  appliesTo   String   @default("both") // goods|services|both
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  lineItems       VoucherLineItem[]
+
+  @@index([companyId])
+  @@map("tax_codes")
+}
+
+/// Voucher — immutable invoices (sales, purchase, credit notes, debit notes)
+model Voucher {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId           String   @db.Uuid
+  gstinId             String   @db.Uuid // Which GSTIN issued this
+  voucherType         String   // sales_invoice|purchase_invoice|credit_note|debit_note
+  voucherNumber       String   // e.g., "INV-2024-001"
+  referenceVoucherId  String?  @db.Uuid // For credit/debit notes that reference an original
+  partyName           String   // Customer/vendor name
+  partyPan            String?  @db.Char(10) // Customer/vendor PAN
+  partyGstin          String?  @db.Char(15) // Customer/vendor GSTIN
+  invoiceDate         DateTime
+  dueDate             DateTime?
+  description         String?
+  totalAmount         Int      // Paise (before tax)
+  cgstAmount          Int      // Paise
+  sgstAmount          Int      // Paise
+  igstAmount          Int      // Paise
+  totalTax            Int      // Paise (CGST+SGST or IGST)
+  grandTotal          Int      // Paise (total + tax)
+  status              String   @default("draft") // draft|finalized|reversed
+  isReversalEntry     Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  createdBy           String   @db.Uuid // User who created
+  finalizedAt         DateTime?
+  reversedAt          DateTime?
+
+  company              Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  gstin                Gstin                @relation(fields: [gstinId], references: [id], onDelete: Restrict)
+  lineItems            VoucherLineItem[]
+  journalEntries       JournalEntry[]
+  stockTransactions    StockTransaction[]
+  reversalReferences   Voucher[]            @relation("Reversals")
+  referenceVoucher     Voucher?             @relation("Reversals", fields: [referenceVoucherId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([gstinId])
+  @@index([voucherNumber])
+  @@index([createdAt])
+  @@map("vouchers")
+}
+
+/// Line items — individual invoice lines with tax breakdown
+model VoucherLineItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  voucherId   String   @db.Uuid
+  itemName    String
+  hsnSacCode  String?
+  quantity    Int      // Always in smallest unit (e.g., 100 = 1 if base unit is 0.01)
+  unitPrice   Int      // Paise
+  lineAmount  Int      // Paise (quantity * unitPrice)
+  taxCodeId   String   @db.Uuid
+  cgstRate    Int      // Basis points (900 = 9%)
+  sgstRate    Int      // Basis points (900 = 9%)
+  igstRate    Int      // Basis points (1800 = 18%)
+  cgstAmount  Int      // Paise
+  sgstAmount  Int      // Paise
+  igstAmount  Int      // Paise
+  lineTotal   Int      // Paise (lineAmount + taxes)
+  createdAt   DateTime @default(now())
+
+  voucher Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  taxCode TaxCode  @relation(fields: [taxCodeId], references: [id], onDelete: Restrict)
+
+  @@index([voucherId])
+  @@index([taxCodeId])
+  @@map("voucher_line_items")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stock & Inventory Tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Stock items — inventory products
+model StockItem {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId       String   @db.Uuid
+  name            String
+  hsnSacCode      String   // Linked to tax classification
+  unit            String   // pcs, kg, ltr, box, etc.
+  currentQuantity Int      // Current quantity (in smallest unit)
+  openingQuantity Int      // Opening balance
+  openingValue    Int?     // Paise (for weighted avg / FIFO)
+  reorderLevel    Int?     // Reorder point
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  company              Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stockTransactions    StockTransaction[]
+
+  @@index([companyId])
+  @@map("stock_items")
+}
+
+/// Stock transactions — track all inward/outward movements
+model StockTransaction {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId       String   @db.Uuid
+  voucherId       String?  @db.Uuid // NULL for manual adjustments
+  stockItemId     String   @db.Uuid
+  transactionType String   // inward|outward|adjustment|opening
+  quantity        Int      // Can be negative for outward
+  unitPrice       Int?     // Paise (for valuation)
+  transactionDate DateTime
+  description     String?
+  createdAt       DateTime @default(now())
+
+  company Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  voucher Voucher?    @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+  stockItem StockItem @relation(fields: [stockItemId], references: [id], onDelete: Restrict)
+
+  @@index([companyId])
+  @@index([voucherId])
+  @@index([stockItemId])
+  @@map("stock_transactions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ledger & Accounting Tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Journal entries — general ledger postings
+model JournalEntry {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String   @db.Uuid
+  voucherId   String?  @db.Uuid // NULL for manual entries
+  accountName String   // Ledger account name
+  debitAmount Int      // Paise
+  creditAmount Int      // Paise
+  postedAt    DateTime
+  description String?
+  createdAt   DateTime @default(now())
+
+  company Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  voucher Voucher? @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([voucherId])
+  @@map("journal_entries")
+}
