@@ -138,3 +138,20 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Gradient text utility — used on hero "autopilot" and CTA "Tavit" */
+.gradient-text {
+  background: linear-gradient(135deg, #7ea860 0%, #9cc47a 60%, #b8e095 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glassmorphism card — used on feature cards and testimonial cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 1px 3px rgba(30, 33, 24, 0.06);
+}

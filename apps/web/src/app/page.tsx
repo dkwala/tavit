@@ -1,773 +1,738 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+
 export default function Home() {
-  const sendPrompt = (message: string) => {
-    console.log(message);
-  };
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div style={{ position: "relative" }}>
+    <div className="relative">
       <DottedSurface />
-      <style>{`
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --ink:#1e2118;
-  --olive:#5a7a3a;
-  --sage:#7ea860;
-  --cream:#e8ddb5;
-  --ink-light:#2e3320;
-  --olive-mid:#4a6630;
-  --sage-light:#9cc47a;
-  --cream-dark:#d4c490;
-}
-body{font-family:var(--font-sans,sans-serif);background:#fff;color:var(--ink)}
 
-nav{background:var(--ink);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{font-size:20px;font-weight:500;color:var(--cream);letter-spacing:-.3px}
-.nav-logo span{color:var(--sage)}
-.nav-links{display:flex;gap:28px;list-style:none}
-.nav-links a{color:rgba(232,221,181,.65);font-size:13px;text-decoration:none;transition:color .15s}
-.nav-links a:hover{color:var(--cream)}
-.nav-cta{background:var(--sage);color:var(--ink);font-size:13px;font-weight:500;padding:7px 18px;border-radius:6px;border:none;cursor:pointer;transition:background .15s}
-.nav-cta:hover{background:var(--sage-light)}
-
-.hero{background:var(--ink);padding:80px 40px 90px;text-align:center}
-.hero-badge{display:inline-block;background:rgba(90,122,58,.25);border:0.5px solid rgba(90,122,58,.5);color:var(--sage-light);font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px}
-.hero h1{font-size:44px;font-weight:500;color:var(--cream);line-height:1.15;letter-spacing:-.8px;max-width:640px;margin:0 auto 20px}
-.hero h1 em{font-style:normal;color:var(--sage)}
-.hero-sub{font-size:17px;color:rgba(232,221,181,.6);max-width:480px;margin:0 auto 36px;line-height:1.7}
-.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn-primary{background:var(--sage);color:var(--ink);font-size:14px;font-weight:500;padding:11px 28px;border-radius:8px;border:none;cursor:pointer;transition:background .15s}
-.btn-primary:hover{background:var(--sage-light)}
-.btn-ghost{background:transparent;color:var(--cream);font-size:14px;font-weight:400;padding:11px 28px;border-radius:8px;border:0.5px solid rgba(232,221,181,.3);cursor:pointer;transition:border-color .15s}
-.btn-ghost:hover{border-color:rgba(232,221,181,.6)}
-.hero-stats{display:flex;gap:40px;justify-content:center;margin-top:56px;padding-top:40px;border-top:0.5px solid rgba(232,221,181,.1)}
-.stat-item{text-align:center}
-.stat-num{font-size:28px;font-weight:500;color:var(--cream)}
-.stat-label{font-size:12px;color:rgba(232,221,181,.45);margin-top:3px;letter-spacing:.03em}
-
-.section{padding:72px 40px}
-.section-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);margin-bottom:10px}
-.section-title{font-size:30px;font-weight:500;color:var(--ink);line-height:1.25;letter-spacing:-.4px;max-width:480px;margin-bottom:14px}
-.section-sub{font-size:15px;color:#6b7061;line-height:1.7;max-width:440px}
-.section-center{text-align:center}
-.section-center .section-title,.section-center .section-sub{margin-left:auto;margin-right:auto}
-
-.how-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;max-width:960px;margin:0 auto}
-.how-steps{display:flex;flex-direction:column;gap:0}
-.step{display:flex;gap:16px;padding:20px 0;border-bottom:0.5px solid #e8ead0}
-.step:last-child{border-bottom:none}
-.step-num{width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--cream);font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-.step-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px}
-.step-desc{font-size:13px;color:#6b7061;line-height:1.6}
-.how-visual{background:var(--ink);border-radius:12px;padding:28px;min-height:340px;display:flex;flex-direction:column;gap:12px}
-.terminal-bar{display:flex;gap:5px;margin-bottom:8px}
-.tb{width:10px;height:10px;border-radius:50%}
-.tb1{background:#e8ddb5;opacity:.3}
-.tb2{background:#7ea860;opacity:.5}
-.tb3{background:#5a7a3a}
-.term-line{font-family:var(--font-mono,monospace);font-size:12px;line-height:1.8}
-.tl-gray{color:rgba(232,221,181,.3)}
-.tl-sage{color:var(--sage)}
-.tl-cream{color:var(--cream)}
-.tl-dim{color:rgba(232,221,181,.5)}
-.tl-green{color:#7ea860}
-.tl-indent{margin-left:16px}
-
-.features-bg{background:#f7f7f0}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;margin:40px auto 0}
-.feat-card{background:#fff;border:0.5px solid #dde0cc;border-radius:12px;padding:24px}
-.feat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-.fi-green{background:#eef5e4}
-.fi-olive{background:#e8eedd}
-.fi-dark{background:#e2e4d5}
-.feat-icon svg{width:18px;height:18px}
-.feat-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:6px}
-.feat-desc{font-size:13px;color:#6b7061;line-height:1.65}
-.feat-badge{display:inline-block;margin-top:10px;font-size:10px;font-weight:500;padding:2px 8px;border-radius:4px;letter-spacing:.04em}
-.fb-red{background:#f5e8e2;color:#8a3a1a}
-.fb-green{background:#e2f0d6;color:#2e5a10}
-
-.tally-section{background:var(--ink);padding:72px 40px}
-.tally-inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
-.tally-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--sage);margin-bottom:12px}
-.tally-title{font-size:28px;font-weight:500;color:var(--cream);line-height:1.25;margin-bottom:14px;letter-spacing:-.3px}
-.tally-sub{font-size:15px;color:rgba(232,221,181,.55);line-height:1.7;margin-bottom:28px}
-.tally-list{list-style:none;display:flex;flex-direction:column;gap:10px}
-.tally-list li{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:rgba(232,221,181,.75);line-height:1.55}
-.tl-dot{width:6px;height:6px;border-radius:50%;background:var(--sage);flex-shrink:0;margin-top:5px}
-.tally-ui{background:#1a1f14;border-radius:12px;padding:20px;border:0.5px solid rgba(90,122,58,.2)}
-.tu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:0.5px solid rgba(90,122,58,.15)}
-.tu-title{font-size:13px;font-weight:500;color:var(--cream)}
-.tu-badge{font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(126,168,96,.15);color:var(--sage);border:0.5px solid rgba(126,168,96,.3)}
-.tu-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid rgba(255,255,255,.04);font-size:12px}
-.tu-row:last-child{border-bottom:none}
-.tu-label{color:rgba(232,221,181,.45)}
-.tu-val{color:var(--cream);font-family:var(--font-mono,monospace)}
-.tu-val.green{color:var(--sage)}
-.tu-val.warn{color:#e8c87a}
-.tu-footer{margin-top:14px;padding-top:12px;border-top:0.5px solid rgba(90,122,58,.15);display:flex;justify-content:space-between;align-items:center}
-.tu-total-label{font-size:11px;color:rgba(232,221,181,.4)}
-.tu-total-val{font-size:16px;font-weight:500;color:var(--sage)}
-
-.testimonials-bg{background:#f7f7f0;padding:72px 40px}
-.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;margin:40px auto 0}
-.test-card{background:#fff;border:0.5px solid #dde0cc;border-radius:12px;padding:24px}
-.test-quote{font-size:14px;color:#3d3f30;line-height:1.7;margin-bottom:20px;font-style:italic}
-.test-author{display:flex;align-items:center;gap:10px}
-.test-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
-.ta-green{background:#eef5e4;color:#2e5a10}
-.ta-olive{background:#e8eedd;color:#3d5020}
-.ta-dark{background:#e0e3d0;color:#2a3015}
-.test-name{font-size:13px;font-weight:500;color:var(--ink)}
-.test-role{font-size:11px;color:#8a8d75}
-.test-stars{color:var(--olive);font-size:12px;margin-bottom:12px;letter-spacing:2px}
-
-.pricing-section{padding:72px 40px}
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:880px;margin:40px auto 0}
-.price-card{border:0.5px solid #dde0cc;border-radius:12px;padding:28px;background:#fff}
-.price-card.featured{border:2px solid var(--olive);background:#f9faf4}
-.price-tier{font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--olive);margin-bottom:8px}
-.price-num{font-size:32px;font-weight:500;color:var(--ink);letter-spacing:-.5px;line-height:1}
-.price-period{font-size:13px;color:#8a8d75;margin-top:3px;margin-bottom:18px}
-.price-desc{font-size:13px;color:#6b7061;line-height:1.6;margin-bottom:20px;padding-bottom:20px;border-bottom:0.5px solid #eaecd8}
-.price-features{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
-.price-features li{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#4a4e36}
-.pf-check{color:var(--olive);font-size:14px;flex-shrink:0;margin-top:1px}
-.price-btn{width:100%;padding:10px;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
-.pb-outline{background:transparent;border:0.5px solid #b8bba0;color:var(--ink)}
-.pb-outline:hover{border-color:var(--olive);color:var(--olive)}
-.pb-solid{background:var(--ink);border:none;color:var(--cream)}
-.pb-solid:hover{background:var(--ink-light)}
-.featured-badge{display:inline-block;background:#e8f0da;color:#2e5a10;font-size:10px;font-weight:500;padding:3px 9px;border-radius:4px;letter-spacing:.04em;margin-bottom:10px}
-
-.cta-section{background:var(--ink);padding:80px 40px;text-align:center}
-.cta-title{font-size:36px;font-weight:500;color:var(--cream);letter-spacing:-.5px;max-width:560px;margin:0 auto 14px;line-height:1.2}
-.cta-title em{font-style:normal;color:var(--sage)}
-.cta-sub{font-size:16px;color:rgba(232,221,181,.55);margin:0 auto 36px;max-width:420px;line-height:1.7}
-.cta-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.cta-trust{margin-top:28px;font-size:12px;color:rgba(232,221,181,.3);letter-spacing:.04em}
-
-footer{background:#13160e;padding:36px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
-.footer-logo{font-size:16px;font-weight:500;color:rgba(232,221,181,.5)}
-.footer-logo span{color:var(--sage)}
-.footer-links{display:flex;gap:24px;list-style:none}
-.footer-links a{color:rgba(232,221,181,.25);font-size:12px;text-decoration:none}
-.footer-copy{font-size:12px;color:rgba(232,221,181,.2)}
-      `}</style>
-
-      <nav>
-        <div className="nav-logo">
-          Tavit<span>.in</span>
+      {/* ── NAV ─────────────────────────────────────────────────────── */}
+      <nav className="bg-[#1e2118] px-5 md:px-10 h-[60px] flex items-center justify-between sticky top-0 z-50">
+        <div className="text-[20px] font-medium text-[#e8ddb5] tracking-tight">
+          Tavit<span className="text-[#7ea860]">.in</span>
         </div>
-        <ul className="nav-links">
-          <li>
-            <a href="#">Product</a>
-          </li>
-          <li>
-            <a href="#">Pricing</a>
-          </li>
-          <li>
-            <a href="#">For CAs</a>
-          </li>
-          <li>
-            <a href="#">About</a>
-          </li>
+
+        {/* Desktop links */}
+        <ul className="hidden md:flex gap-7 list-none">
+          {["Product", "Pricing", "For CAs", "About"].map((item) => (
+            <li key={item}>
+              <a
+                href={item === "Pricing" ? "#pricing" : "#"}
+                className="text-[rgba(232,221,181,0.65)] text-[13px] no-underline hover:text-[#e8ddb5] transition-colors"
+              >
+                {item}
+              </a>
+            </li>
+          ))}
         </ul>
-        <Link
-          href="/auth/login"
-          className="nav-cta"
-          style={{ textDecoration: "none" }}
-        >
-          Start now
-        </Link>
-      </nav>
 
-      <section className="hero">
-        <div className="hero-badge">
-          Paid · Push to live · Varanasi & Prayagraj
-        </div>
-        <h1>
-          Your enterprise, running on <em>autopilot</em>
-        </h1>
-        <p className="hero-sub">
-          Tavit files your GST, reconciles ITC, and manages compliance —
-          automatically. Built for Indian MSMEs that run on Tally.
-        </p>
-        <div className="hero-actions">
+        <div className="flex items-center gap-3">
           <Link
             href="/auth/login"
-            className="btn-primary"
-            style={{ textDecoration: "none" }}
+            className="hidden md:inline-block bg-[#7ea860] text-[#1e2118] text-[13px] font-medium px-[18px] py-[7px] rounded-[6px] no-underline hover:bg-[#9cc47a] transition-colors"
           >
-            Get started
+            Start now
           </Link>
+          {/* Hamburger */}
           <button
-            className="btn-ghost"
-            onClick={() =>
-              sendPrompt("Show me a demo of Tavit ITC reconciliation")
-            }
+            className="md:hidden text-[#e8ddb5] text-2xl leading-none"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Toggle menu"
           >
-            See it in action
+            {menuOpen ? "✕" : "☰"}
           </button>
         </div>
-        <div className="hero-stats">
-          <div className="stat-item">
-            <div className="stat-num">10 min</div>
-            <div className="stat-label">to import Tally data</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num">100%</div>
-            <div className="stat-label">GST compliant output</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num">3x</div>
-            <div className="stat-label">faster than manual filing</div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-num">₹0</div>
-            <div className="stat-label">penalty risk with Tavit</div>
-          </div>
-        </div>
-      </section>
+      </nav>
 
-      <section className="section" style={{ background: "#fff" }}>
-        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <div className="section-label">how it works</div>
-          <div className="how-grid">
-            <div>
-              <h2 className="section-title">
-                From Tally export to filed return in minutes
-              </h2>
-              <p className="section-sub" style={{ marginBottom: "32px" }}>
-                No manual data entry. No spreadsheets. Tavit reads your Tally
-                XML, computes the right figures, and hands you a ready-to-file
-                return.
-              </p>
-              <div className="how-steps">
-                <div className="step">
-                  <div className="step-num">1</div>
-                  <div>
-                    <div className="step-title">Export from Tally</div>
-                    <div className="step-desc">
-                      One-click XML export from TallyPrime. Drag it into Tavit —
-                      vouchers, ledgers, and masters all imported in seconds.
-                    </div>
-                  </div>
-                </div>
-                <div className="step">
-                  <div className="step-num">2</div>
-                  <div>
-                    <div className="step-title">Tavit computes everything</div>
-                    <div className="step-desc">
-                      Our compliance engine separates B2B, B2C, exports,
-                      nil-rated, and exempt supplies. It cross-checks GSTR-2B
-                      and flags ITC mismatches.
-                    </div>
-                  </div>
-                </div>
-                <div className="step">
-                  <div className="step-num">3</div>
-                  <div>
-                    <div className="step-title">Review, approve, file</div>
-                    <div className="step-desc">
-                      GSTR-1, GSTR-2B reconciliation, and GSTR-3B are pre-filled
-                      and ready. Your CA reviews in minutes, not hours.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="how-visual">
-              <div className="terminal-bar">
-                <div className="tb tb1"></div>
-                <div className="tb tb2"></div>
-                <div className="tb tb3"></div>
-              </div>
-              <div className="term-line tl-dim">{`// Tavit compliance engine`}</div>
-              <div className="term-line tl-gray">
-                importing tally_export_oct25.xml...
-              </div>
-              <div className="term-line tl-sage">✓ 847 vouchers parsed</div>
-              <div className="term-line tl-sage">✓ 23 GSTINs validated</div>
-              <div className="term-line tl-gray" style={{ marginTop: "8px" }}>
-                running gstr-1 builder...
-              </div>
-              <div className="term-line tl-indent tl-cream">
-                B2B supplies → ₹42,80,000
-              </div>
-              <div className="term-line tl-indent tl-cream">
-                B2C supplies → ₹8,15,000
-              </div>
-              <div className="term-line tl-indent tl-cream">
-                Nil rated → ₹1,20,000
-              </div>
-              <div className="term-line tl-sage" style={{ marginTop: "4px" }}>
-                ✓ GSTR-1 ready (Table 4A-12)
-              </div>
-              <div className="term-line tl-gray" style={{ marginTop: "8px" }}>
-                reconciling with 2B...
-              </div>
-              <div className="term-line tl-indent" style={{ color: "#e8c87a" }}>
-                ⚠ 3 invoices unmatched
-              </div>
-              <div className="term-line tl-indent tl-sage">
-                ✓ ₹5,84,200 ITC eligible
-              </div>
-              <div className="term-line tl-gray" style={{ marginTop: "8px" }}>
-                drafting gstr-3b...
-              </div>
-              <div className="term-line tl-sage">
-                ✓ GSTR-3B ready for CA review
-              </div>
-              <div
-                className="term-line"
-                style={{ color: "rgba(232,221,181,.2)", marginTop: "8px" }}
-              >
-                time elapsed: 38 seconds
-              </div>
-            </div>
-          </div>
+      {/* Mobile drawer */}
+      {menuOpen && (
+        <div className="md:hidden bg-[#1e2118] border-t border-[rgba(232,221,181,0.08)] px-5 py-4 flex flex-col gap-4 z-40">
+          {["Product", "Pricing", "For CAs", "About"].map((item) => (
+            <a
+              key={item}
+              href={item === "Pricing" ? "#pricing" : "#"}
+              className="text-[rgba(232,221,181,0.7)] text-[15px] no-underline"
+              onClick={() => setMenuOpen(false)}
+            >
+              {item}
+            </a>
+          ))}
+          <Link
+            href="/auth/login"
+            className="bg-[#7ea860] text-[#1e2118] text-[13px] font-medium px-4 py-2 rounded-[6px] no-underline text-center mt-1"
+            onClick={() => setMenuOpen(false)}
+          >
+            Start now
+          </Link>
         </div>
-      </section>
+      )}
 
-      <section className="section features-bg">
-        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <div className="section-center">
-            <div className="section-label">features</div>
-            <h2 className="section-title">
-              Everything your finance team needs, automated
-            </h2>
-          </div>
-          <div className="features-grid">
-            <div className="feat-card">
-              <div className="feat-icon fi-green">
-                <svg
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  stroke="#3b6d11"
-                  strokeWidth="1.5"
+      {/* ── HERO ────────────────────────────────────────────────────── */}
+      <section className="bg-[#1e2118] px-5 md:px-10 pt-16 pb-20 md:pt-20 md:pb-24 text-center">
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={stagger}
+          className="max-w-2xl mx-auto"
+        >
+          <motion.div
+            variants={fadeUp}
+            className="inline-block bg-[rgba(90,122,58,0.25)] border border-[rgba(90,122,58,0.5)] text-[#9cc47a] text-[11px] font-medium px-3 py-1 rounded-full tracking-widest uppercase mb-6"
+          >
+            Paid · Push to live · Varanasi &amp; Prayagraj
+          </motion.div>
+
+          <motion.h1
+            variants={fadeUp}
+            className="text-3xl sm:text-4xl lg:text-5xl font-medium text-[#e8ddb5] leading-[1.15] tracking-tight mb-5"
+          >
+            Your enterprise, running on{" "}
+            <span className="gradient-text">autopilot</span>
+          </motion.h1>
+
+          <motion.p
+            variants={fadeUp}
+            className="text-[15px] sm:text-[17px] text-[rgba(232,221,181,0.6)] max-w-[480px] mx-auto mb-9 leading-relaxed"
+          >
+            Tavit files your GST, reconciles ITC, and manages compliance —
+            automatically. Built for Indian MSMEs that run on Tally.
+          </motion.p>
+
+          {/* Social proof strip */}
+          <motion.div
+            variants={fadeUp}
+            className="flex items-center justify-center gap-2 mb-8"
+          >
+            <div className="flex -space-x-2">
+              {["RG", "AS", "PK", "MK"].map((init, i) => (
+                <div
+                  key={i}
+                  className="w-7 h-7 rounded-full border-2 border-[#1e2118] flex items-center justify-center text-[9px] font-medium"
+                  style={{
+                    background: ["#3d5020", "#4a6630", "#2e3320", "#3a4a28"][i],
+                    color: "#9cc47a",
+                  }}
                 >
+                  {init}
+                </div>
+              ))}
+            </div>
+            <span className="text-[12px] text-[rgba(232,221,181,0.45)] tracking-wide">
+              ★★★★★ &nbsp;Trusted by 200+ MSMEs
+            </span>
+          </motion.div>
+
+          <motion.div
+            variants={fadeUp}
+            className="flex gap-3 justify-center flex-wrap"
+          >
+            <Link
+              href="/auth/login"
+              className="bg-[#7ea860] text-[#1e2118] text-[14px] font-medium px-7 py-[11px] rounded-[8px] no-underline hover:bg-[#9cc47a] transition-colors"
+            >
+              Get started
+            </Link>
+            <button className="bg-transparent text-[#e8ddb5] text-[14px] px-7 py-[11px] rounded-[8px] border border-[rgba(232,221,181,0.3)] hover:border-[rgba(232,221,181,0.6)] transition-colors cursor-pointer">
+              See it in action
+            </button>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            variants={fadeUp}
+            className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-14 pt-10 border-t border-[rgba(232,221,181,0.1)]"
+          >
+            {[
+              { num: "10 min", label: "to import Tally data" },
+              { num: "100%", label: "GST compliant output" },
+              { num: "3x", label: "faster than manual filing" },
+              { num: "₹0", label: "penalty risk with Tavit" },
+            ].map(({ num, label }) => (
+              <div key={num} className="text-center">
+                <div className="text-[26px] sm:text-[28px] font-medium text-[#e8ddb5]">
+                  {num}
+                </div>
+                <div className="text-[11px] text-[rgba(232,221,181,0.45)] mt-1 tracking-wide">
+                  {label}
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ── HOW IT WORKS ────────────────────────────────────────────── */}
+      <section className="bg-white px-5 md:px-10 py-16 md:py-20">
+        <div className="max-w-[960px] mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={stagger}
+          >
+            <motion.div
+              variants={fadeUp}
+              className="text-[11px] font-medium tracking-[.08em] uppercase text-[#5a7a3a] mb-2"
+            >
+              how it works
+            </motion.div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+              <motion.div variants={fadeUp}>
+                <h2 className="text-[26px] sm:text-[30px] font-medium text-[#1e2118] leading-[1.25] tracking-tight max-w-[480px] mb-3">
+                  From Tally export to filed return in minutes
+                </h2>
+                <p className="text-[15px] text-[#6b7061] leading-relaxed max-w-[440px] mb-8">
+                  No manual data entry. No spreadsheets. Tavit reads your Tally
+                  XML, computes the right figures, and hands you a ready-to-file
+                  return.
+                </p>
+                <div className="flex flex-col gap-0">
+                  {[
+                    {
+                      n: "1",
+                      title: "Export from Tally",
+                      desc: "One-click XML export from TallyPrime. Drag it into Tavit — vouchers, ledgers, and masters all imported in seconds.",
+                    },
+                    {
+                      n: "2",
+                      title: "Tavit computes everything",
+                      desc: "Our compliance engine separates B2B, B2C, exports, nil-rated, and exempt supplies. It cross-checks GSTR-2B and flags ITC mismatches.",
+                    },
+                    {
+                      n: "3",
+                      title: "Review, approve, file",
+                      desc: "GSTR-1, GSTR-2B reconciliation, and GSTR-3B are pre-filled and ready. Your CA reviews in minutes, not hours.",
+                    },
+                  ].map(({ n, title, desc }) => (
+                    <div
+                      key={n}
+                      className="flex gap-4 py-5 border-b border-[#e8ead0] last:border-b-0"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-[#1e2118] text-[#e8ddb5] text-[13px] font-medium flex items-center justify-center shrink-0 mt-[2px]">
+                        {n}
+                      </div>
+                      <div>
+                        <div className="text-[14px] font-medium text-[#1e2118] mb-1">
+                          {title}
+                        </div>
+                        <div className="text-[13px] text-[#6b7061] leading-relaxed">
+                          {desc}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Terminal */}
+              <motion.div
+                variants={fadeUp}
+                className="bg-[#1e2118] rounded-xl p-7 min-h-[320px] flex flex-col gap-3 order-first lg:order-last"
+              >
+                <div className="flex gap-[5px] mb-2">
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#e8ddb5] opacity-30" />
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#7ea860] opacity-50" />
+                  <div className="w-[10px] h-[10px] rounded-full bg-[#5a7a3a]" />
+                </div>
+                {[
+                  { cls: "text-[rgba(232,221,181,0.5)]", text: "// Tavit compliance engine" },
+                  { cls: "text-[rgba(232,221,181,0.3)]", text: "importing tally_export_oct25.xml..." },
+                  { cls: "text-[#7ea860]", text: "✓ 847 vouchers parsed" },
+                  { cls: "text-[#7ea860]", text: "✓ 23 GSTINs validated" },
+                  { cls: "text-[rgba(232,221,181,0.3)] mt-2", text: "running gstr-1 builder..." },
+                  { cls: "text-[#e8ddb5] ml-4", text: "B2B supplies → ₹42,80,000" },
+                  { cls: "text-[#e8ddb5] ml-4", text: "B2C supplies → ₹8,15,000" },
+                  { cls: "text-[#e8ddb5] ml-4", text: "Nil rated → ₹1,20,000" },
+                  { cls: "text-[#7ea860] mt-1", text: "✓ GSTR-1 ready (Table 4A-12)" },
+                  { cls: "text-[rgba(232,221,181,0.3)] mt-2", text: "reconciling with 2B..." },
+                  { cls: "text-[#e8c87a] ml-4", text: "⚠ 3 invoices unmatched" },
+                  { cls: "text-[#7ea860] ml-4", text: "✓ ₹5,84,200 ITC eligible" },
+                  { cls: "text-[rgba(232,221,181,0.3)] mt-2", text: "drafting gstr-3b..." },
+                  { cls: "text-[#7ea860]", text: "✓ GSTR-3B ready for CA review" },
+                  { cls: "text-[rgba(232,221,181,0.2)] mt-2", text: "time elapsed: 38 seconds" },
+                ].map(({ cls, text }, i) => (
+                  <div
+                    key={i}
+                    className={`font-mono text-[12px] leading-[1.8] ${cls}`}
+                  >
+                    {text}
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── FEATURES (BENTO) ────────────────────────────────────────── */}
+      <section className="bg-[#f7f7f0] px-5 md:px-10 py-16 md:py-20">
+        <div className="max-w-[960px] mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={stagger}
+            className="text-center mb-10"
+          >
+            <motion.div
+              variants={fadeUp}
+              className="text-[11px] font-medium tracking-[.08em] uppercase text-[#5a7a3a] mb-2"
+            >
+              features
+            </motion.div>
+            <motion.h2
+              variants={fadeUp}
+              className="text-[26px] sm:text-[30px] font-medium text-[#1e2118] leading-[1.25] tracking-tight max-w-[480px] mx-auto"
+            >
+              Everything your finance team needs, automated
+            </motion.h2>
+          </motion.div>
+
+          {/* Bento grid: 2 wide + 4 small */}
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={stagger}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {/* Wide card — ITC reconciliation */}
+            <motion.div
+              variants={fadeUp}
+              className="sm:col-span-2 glass-card p-6 rounded-xl"
+            >
+              <div className="w-9 h-9 rounded-lg bg-[#eef5e4] flex items-center justify-center mb-4">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#3b6d11" strokeWidth="1.5" className="w-[18px] h-[18px]">
                   <path d="M3 9l4 4 8-8" />
                 </svg>
               </div>
-              <div className="feat-title">ITC reconciliation</div>
-              <div className="feat-desc">
-                Auto-match your purchase register against GSTR-2B. See matched,
-                unmatched, and pending in a single view. Export discrepancy
-                report for your CA.
+              <div className="text-[14px] font-medium text-[#1e2118] mb-2">ITC reconciliation</div>
+              <div className="text-[13px] text-[#6b7061] leading-relaxed max-w-sm">
+                Auto-match your purchase register against GSTR-2B. See matched, unmatched, and pending in a single view. Export discrepancy report for your CA.
               </div>
-              <span className="feat-badge fb-green">Core feature</span>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon fi-olive">
-                <svg
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  stroke="#4a6630"
-                  strokeWidth="1.5"
-                >
+              <span className="inline-block mt-3 text-[10px] font-medium px-2 py-[2px] rounded bg-[#e2f0d6] text-[#2e5a10] tracking-wide">Core feature</span>
+            </motion.div>
+
+            {/* GSTR-1 & 3B */}
+            <motion.div variants={fadeUp} className="glass-card p-6 rounded-xl">
+              <div className="w-9 h-9 rounded-lg bg-[#e8eedd] flex items-center justify-center mb-4">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#4a6630" strokeWidth="1.5" className="w-[18px] h-[18px]">
                   <rect x="2" y="2" width="14" height="14" rx="2" />
                   <path d="M5 9h8M5 6h5" />
                 </svg>
               </div>
-              <div className="feat-title">GSTR-1 & 3B builder</div>
-              <div className="feat-desc">
-                Tally data flows directly into GSTR-1 sections and GSTR-3B
-                tables. Figures are computed using decimal-precise arithmetic —
-                never float errors.
+              <div className="text-[14px] font-medium text-[#1e2118] mb-2">GSTR-1 &amp; 3B builder</div>
+              <div className="text-[13px] text-[#6b7061] leading-relaxed">
+                Tally data flows directly into GSTR-1 sections and GSTR-3B tables. Decimal-precise arithmetic — never float errors.
               </div>
-              <span className="feat-badge fb-red">paid</span>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon fi-dark">
-                <svg
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  stroke="#2a3015"
-                  strokeWidth="1.5"
-                >
+              <span className="inline-block mt-3 text-[10px] font-medium px-2 py-[2px] rounded bg-[#f5e8e2] text-[#8a3a1a] tracking-wide">paid</span>
+            </motion.div>
+
+            {/* Compliance calendar */}
+            <motion.div variants={fadeUp} className="glass-card p-6 rounded-xl">
+              <div className="w-9 h-9 rounded-lg bg-[#e2e4d5] flex items-center justify-center mb-4">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#2a3015" strokeWidth="1.5" className="w-[18px] h-[18px]">
                   <circle cx="9" cy="9" r="7" />
                   <path d="M9 5v4l3 2" />
                 </svg>
               </div>
-              <div className="feat-title">Compliance calendar</div>
-              <div className="feat-desc">
-                Never miss a due date. GSTR-1 (11th), GSTR-3B (20th), TDS
-                challan (7th) — all tracked with WhatsApp reminders 3 days
-                before.
+              <div className="text-[14px] font-medium text-[#1e2118] mb-2">Compliance calendar</div>
+              <div className="text-[13px] text-[#6b7061] leading-relaxed">
+                Never miss a due date. GSTR-1 (11th), GSTR-3B (20th), TDS challan (7th) — all tracked with WhatsApp reminders.
               </div>
-              <span className="feat-badge fb-green">Auto-reminders</span>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon fi-green">
-                <svg
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  stroke="#3b6d11"
-                  strokeWidth="1.5"
-                >
+              <span className="inline-block mt-3 text-[10px] font-medium px-2 py-[2px] rounded bg-[#e2f0d6] text-[#2e5a10] tracking-wide">Auto-reminders</span>
+            </motion.div>
+
+            {/* Tally integration */}
+            <motion.div variants={fadeUp} className="glass-card p-6 rounded-xl">
+              <div className="w-9 h-9 rounded-lg bg-[#eef5e4] flex items-center justify-center mb-4">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#3b6d11" strokeWidth="1.5" className="w-[18px] h-[18px]">
                   <path d="M3 3h12v4H3zM3 9h7v6H3zM13 9h2v6h-2z" />
                 </svg>
               </div>
-              <div className="feat-title">Tally integration</div>
-              <div className="feat-desc">
-                Works with TallyPrime out of the box. Import vouchers, masters,
-                and ledgers via XML. No API key, no plugin — just drag and drop.
+              <div className="text-[14px] font-medium text-[#1e2118] mb-2">Tally integration</div>
+              <div className="text-[13px] text-[#6b7061] leading-relaxed">
+                Works with TallyPrime out of the box. Import via XML — no API key, no plugin, just drag and drop.
               </div>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon fi-olive">
-                <svg
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  stroke="#4a6630"
-                  strokeWidth="1.5"
-                >
+            </motion.div>
+
+            {/* CA dashboard — wide */}
+            <motion.div
+              variants={fadeUp}
+              className="sm:col-span-2 lg:col-span-1 glass-card p-6 rounded-xl"
+            >
+              <div className="w-9 h-9 rounded-lg bg-[#e8eedd] flex items-center justify-center mb-4">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#4a6630" strokeWidth="1.5" className="w-[18px] h-[18px]">
                   <path d="M9 2l2.5 5h5.5l-4.5 3.5 1.5 5.5L9 13l-4.5 3 1.5-5.5L1.5 7H7z" />
                 </svg>
               </div>
-              <div className="feat-title">CA dashboard</div>
-              <div className="feat-desc">
-                CAs manage all their clients from one place. Review, annotate,
-                and approve returns without switching tools. Free for CA
-                partners.
+              <div className="text-[14px] font-medium text-[#1e2118] mb-2">CA dashboard</div>
+              <div className="text-[13px] text-[#6b7061] leading-relaxed">
+                CAs manage all clients from one place. Review, annotate, and approve returns without switching tools.
               </div>
-              <span className="feat-badge fb-green">Free for CAs</span>
-            </div>
-            <div className="feat-card">
-              <div className="feat-icon fi-dark">
-                <svg
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  stroke="#2a3015"
-                  strokeWidth="1.5"
-                >
-                  <path d="M4 4h10v10H4z" />
-                  <path d="M4 8h10M8 4v10" />
+              <span className="inline-block mt-3 text-[10px] font-medium px-2 py-[2px] rounded bg-[#e2f0d6] text-[#2e5a10] tracking-wide">Free for CAs</span>
+            </motion.div>
+
+            {/* Hindi-first — wide */}
+            <motion.div
+              variants={fadeUp}
+              className="sm:col-span-2 glass-card p-6 rounded-xl"
+            >
+              <div className="w-9 h-9 rounded-lg bg-[#e2e4d5] flex items-center justify-center mb-4">
+                <svg viewBox="0 0 18 18" fill="none" stroke="#2a3015" strokeWidth="1.5" className="w-[18px] h-[18px]">
+                  <path d="M4 4h10v10H4z" /><path d="M4 8h10M8 4v10" />
                 </svg>
               </div>
-              <div className="feat-title">Hindi-first UI</div>
-              <div className="feat-desc">
-                Interface available in Hindi for Tier 2/3 businesses.
-                WhatsApp-native flows for owners who prefer voice and chat over
-                dashboards.
+              <div className="text-[14px] font-medium text-[#1e2118] mb-2">Hindi-first UI</div>
+              <div className="text-[13px] text-[#6b7061] leading-relaxed max-w-sm">
+                Interface available in Hindi for Tier 2/3 businesses. WhatsApp-native flows for owners who prefer voice and chat over dashboards.
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      <section className="tally-section">
-        <div className="tally-inner">
-          <div>
-            <div className="tally-label">Tally integration</div>
-            <h2 className="tally-title">
+      {/* ── TALLY INTEGRATION ───────────────────────────────────────── */}
+      <section className="bg-[#1e2118] px-5 md:px-10 py-16 md:py-20">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          variants={stagger}
+          className="max-w-[960px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center"
+        >
+          <motion.div variants={fadeUp}>
+            <div className="text-[11px] font-medium tracking-[.08em] uppercase text-[#7ea860] mb-3">
+              Tally integration
+            </div>
+            <h2 className="text-[24px] sm:text-[28px] font-medium text-[#e8ddb5] leading-[1.25] tracking-tight mb-3">
               Built on top of the software your business already uses
             </h2>
-            <p className="tally-sub">
-              28,000+ CAs and lakhs of businesses run on Tally. Tavit
-              doesn&apos;t replace it — it plugs in on top and handles
-              everything Tally doesn&apos;t do automatically.
+            <p className="text-[15px] text-[rgba(232,221,181,0.55)] leading-relaxed mb-7">
+              28,000+ CAs and lakhs of businesses run on Tally. Tavit doesn&apos;t
+              replace it — it plugs in on top and handles everything Tally
+              doesn&apos;t do automatically.
             </p>
-            <ul className="tally-list">
-              <li>
-                <div className="tl-dot"></div>Import any TallyPrime XML export
-                in seconds
-              </li>
-              <li>
-                <div className="tl-dot"></div>All voucher types supported:
-                sales, purchase, credit note, debit note
-              </li>
-              <li>
-                <div className="tl-dot"></div>GSTIN, HSN, and PAN validated on
-                import
-              </li>
-              <li>
-                <div className="tl-dot"></div>Multi-GSTIN companies supported
-              </li>
-              <li>
-                <div className="tl-dot"></div>No Tally add-ons or plugins
-                required
-              </li>
+            <ul className="flex flex-col gap-[10px] list-none">
+              {[
+                "Import any TallyPrime XML export in seconds",
+                "All voucher types supported: sales, purchase, credit note, debit note",
+                "GSTIN, HSN, and PAN validated on import",
+                "Multi-GSTIN companies supported",
+                "No Tally add-ons or plugins required",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-[10px] text-[13px] text-[rgba(232,221,181,0.75)] leading-snug">
+                  <span className="w-[6px] h-[6px] rounded-full bg-[#7ea860] shrink-0 mt-[5px]" />
+                  {item}
+                </li>
+              ))}
             </ul>
-          </div>
-          <div className="tally-ui">
-            <div className="tu-head">
-              <span className="tu-title">GSTR-3B draft · October 2025</span>
-              <span className="tu-badge">Ready for review</span>
+          </motion.div>
+
+          {/* GSTR-3B UI mockup */}
+          <motion.div
+            variants={fadeUp}
+            className="bg-[#1a1f14] rounded-xl p-5 border border-[rgba(90,122,58,0.2)]"
+          >
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-[rgba(90,122,58,0.15)]">
+              <span className="text-[13px] font-medium text-[#e8ddb5]">GSTR-3B draft · October 2025</span>
+              <span className="text-[10px] px-2 py-[2px] rounded bg-[rgba(126,168,96,0.15)] text-[#7ea860] border border-[rgba(126,168,96,0.3)]">
+                Ready for review
+              </span>
             </div>
-            <div className="tu-row">
-              <span className="tu-label">3.1 — Outward taxable supplies</span>
-              <span className="tu-val">₹42,80,000</span>
+            {[
+              { label: "3.1 — Outward taxable supplies", val: "₹42,80,000", cls: "text-[#e8ddb5]" },
+              { label: "Integrated tax (IGST)", val: "₹3,24,000", cls: "text-[#e8ddb5]" },
+              { label: "Central tax (CGST)", val: "₹1,84,500", cls: "text-[#e8ddb5]" },
+              { label: "State tax (SGST)", val: "₹1,84,500", cls: "text-[#e8ddb5]" },
+              { label: "ITC available (from 2B)", val: "₹5,84,200", cls: "text-[#7ea860]" },
+              { label: "ITC unmatched — pending", val: "₹18,400", cls: "text-[#e8c87a]" },
+            ].map(({ label, val, cls }) => (
+              <div key={label} className="flex justify-between py-2 border-b border-[rgba(255,255,255,0.04)] last:border-b-0 text-[12px]">
+                <span className="text-[rgba(232,221,181,0.45)]">{label}</span>
+                <span className={`font-mono ${cls}`}>{val}</span>
+              </div>
+            ))}
+            <div className="flex justify-between items-center mt-3 pt-3 border-t border-[rgba(90,122,58,0.15)]">
+              <span className="text-[11px] text-[rgba(232,221,181,0.4)]">Net tax payable</span>
+              <span className="text-[16px] font-medium text-[#7ea860]">₹1,08,800</span>
             </div>
-            <div className="tu-row">
-              <span className="tu-label">Integrated tax (IGST)</span>
-              <span className="tu-val">₹3,24,000</span>
-            </div>
-            <div className="tu-row">
-              <span className="tu-label">Central tax (CGST)</span>
-              <span className="tu-val">₹1,84,500</span>
-            </div>
-            <div className="tu-row">
-              <span className="tu-label">State tax (SGST)</span>
-              <span className="tu-val">₹1,84,500</span>
-            </div>
-            <div className="tu-row">
-              <span className="tu-label">ITC available (from 2B)</span>
-              <span className="tu-val green">₹5,84,200</span>
-            </div>
-            <div className="tu-row">
-              <span className="tu-label">ITC unmatched — pending</span>
-              <span className="tu-val warn">₹18,400</span>
-            </div>
-            <div className="tu-footer">
-              <span className="tu-total-label">Net tax payable</span>
-              <span className="tu-total-val">₹1,08,800</span>
-            </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
-      <section className="testimonials-bg">
-        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <div className="section-center">
-            <div className="section-label">testimonials</div>
-            <h2 className="section-title">
+      {/* ── TESTIMONIALS ────────────────────────────────────────────── */}
+      <section className="bg-[#f7f7f0] px-5 md:px-10 py-16 md:py-20">
+        <div className="max-w-[960px] mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={stagger}
+            className="text-center mb-10"
+          >
+            <motion.div
+              variants={fadeUp}
+              className="text-[11px] font-medium tracking-[.08em] uppercase text-[#5a7a3a] mb-2"
+            >
+              testimonials
+            </motion.div>
+            <motion.h2
+              variants={fadeUp}
+              className="text-[26px] sm:text-[30px] font-medium text-[#1e2118] leading-[1.25] tracking-tight max-w-[480px] mx-auto"
+            >
               Trusted by manufacturers and traders across UP
-            </h2>
-          </div>
-          <div className="test-grid">
-            <div className="test-card">
-              <div className="test-stars">★★★★★</div>
-              <p className="test-quote">
-                &quot;Pehle GST filing mein poora din jaata tha. Tavit se ab 2
-                ghante mein khatam ho jaata hai. ITC reconciliation
-                automatically ho jaati hai — yahi sabse badi rahat hai.&quot;
-              </p>
-              <div className="test-author">
-                <div className="test-avatar ta-green">RG</div>
-                <div>
-                  <div className="test-name">Rajesh Gupta</div>
-                  <div className="test-role">
-                    MD, Gupta Textile Mills · Varanasi
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="test-card">
-              <div className="test-stars">★★★★★</div>
-              <p className="test-quote">
-                &quot;As a CA managing 40 clients, Tavit has given me my
-                evenings back. The reconciliation report is exactly what I need
-                to review and approve — clean, accurate, exportable.&quot;
-              </p>
-              <div className="test-author">
-                <div className="test-avatar ta-olive">AS</div>
-                <div>
-                  <div className="test-name">Ankit Srivastava, CA</div>
-                  <div className="test-role">
-                    Partner, AS & Associates · Prayagraj
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="test-card">
-              <div className="test-stars">★★★★★</div>
-              <p className="test-quote">
-                &quot;Our trading company has 3 GSTINs and it was a nightmare
-                every month. Tavit handles all three, shows the consolidated
-                view, and sends WhatsApp reminders before every due date.&quot;
-              </p>
-              <div className="test-author">
-                <div className="test-avatar ta-dark">PK</div>
-                <div>
-                  <div className="test-name">Priya Kesarwani</div>
-                  <div className="test-role">
-                    CFO, Kesarwani Traders · Prayagraj
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+            </motion.h2>
+          </motion.div>
 
-      <section className="pricing-section">
-        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
-          <div className="section-center">
-            <div className="section-label">pricing</div>
-            <h2 className="section-title">Simple pricing, no surprises</h2>
-            <p className="section-sub" style={{ margin: "0 auto 0" }}>
-              Start free. Scale as you grow. All plans include Tally import and
-              GSTR-1/3B.
-            </p>
-          </div>
-          <div className="pricing-grid">
-            <div className="price-card">
-              <div className="price-tier">Starter</div>
-              <div className="price-num">₹2,999</div>
-              <div className="price-period">per month · 1 GSTIN</div>
-              <div className="price-desc">
-                For small businesses filing monthly returns and needing basic
-                ITC reconciliation.
-              </div>
-              <ul className="price-features">
-                <li>
-                  <span className="pf-check">✓</span>Tally XML import
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>GSTR-1 builder
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>GSTR-2B reconciliation
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>Compliance calendar
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>WhatsApp reminders
-                </li>
-              </ul>
-              <button
-                className="price-btn pb-outline"
-                onClick={() =>
-                  sendPrompt("I want to sign up for the Tavit Starter plan")
-                }
-              >
-                Get started
-              </button>
-            </div>
-            <div className="price-card featured">
-              <div className="featured-badge">Most popular</div>
-              <div className="price-tier">Growth</div>
-              <div className="price-num">₹7,999</div>
-              <div className="price-period">per month · up to 3 GSTINs</div>
-              <div className="price-desc">
-                For growing MSMEs needing multi-GSTIN support and CA
-                collaboration tools.
-              </div>
-              <ul className="price-features">
-                <li>
-                  <span className="pf-check">✓</span>Everything in Starter
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>GSTR-3B drafter
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>CA dashboard access
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>Up to 3 GSTINs
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>CSV export for all reports
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>Priority support
-                </li>
-              </ul>
-              <button
-                className="price-btn pb-solid"
-                onClick={() =>
-                  sendPrompt("I want to sign up for the Tavit Growth plan")
-                }
-              >
-                Get started
-              </button>
-            </div>
-            <div className="price-card">
-              <div className="price-tier">Professional</div>
-              <div className="price-num">₹17,999</div>
-              <div className="price-period">per month · unlimited GSTINs</div>
-              <div className="price-desc">
-                For large enterprises and CA firms managing multiple companies.
-              </div>
-              <ul className="price-features">
-                <li>
-                  <span className="pf-check">✓</span>Everything in Growth
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>Unlimited GSTINs
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>Multi-company view
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>TDS engine (coming)
-                </li>
-                <li>
-                  <span className="pf-check">✓</span>Dedicated CA account
-                  manager
-                </li>
-              </ul>
-              <button
-                className="price-btn pb-outline"
-                onClick={() =>
-                  sendPrompt(
-                    "I want to sign up for the Tavit Professional plan",
-                  )
-                }
-              >
-                Get started
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="cta-section">
-        <h2 className="cta-title">
-          Stop managing compliance. Let <em>Tavit</em> handle it.
-        </h2>
-        <p className="cta-sub">
-          Paid and live. Set up your company, import Tally data, and file your
-          first return today.
-        </p>
-        <div className="cta-actions">
-          <Link
-            href="/auth/login"
-            className="btn-primary"
-            style={{ textDecoration: "none" }}
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={stagger}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
           >
-            Get started
-          </Link>
-          <button
-            className="btn-ghost"
-            onClick={() =>
-              sendPrompt("I am a CA and want to partner with Tavit")
-            }
-          >
-            Partner as a CA
-          </button>
-        </div>
-        <div className="cta-trust">
-          Live product · Cancel anytime · GSTN compliant
+            {[
+              {
+                quote: '"Pehle GST filing mein poora din jaata tha. Tavit se ab 2 ghante mein khatam ho jaata hai. ITC reconciliation automatically ho jaati hai — yahi sabse badi rahat hai."',
+                init: "RG",
+                name: "Rajesh Gupta",
+                role: "MD, Gupta Textile Mills · Varanasi",
+                bg: "#eef5e4",
+                color: "#2e5a10",
+              },
+              {
+                quote: '"As a CA managing 40 clients, Tavit has given me my evenings back. The reconciliation report is exactly what I need to review and approve — clean, accurate, exportable."',
+                init: "AS",
+                name: "Ankit Srivastava, CA",
+                role: "Partner, AS & Associates · Prayagraj",
+                bg: "#e8eedd",
+                color: "#3d5020",
+              },
+              {
+                quote: '"Our trading company has 3 GSTINs and it was a nightmare every month. Tavit handles all three, shows the consolidated view, and sends WhatsApp reminders before every due date."',
+                init: "PK",
+                name: "Priya Kesarwani",
+                role: "CFO, Kesarwani Traders · Prayagraj",
+                bg: "#e0e3d0",
+                color: "#2a3015",
+              },
+            ].map(({ quote, init, name, role, bg, color }) => (
+              <motion.div
+                key={name}
+                variants={fadeUp}
+                className="glass-card p-6 rounded-xl"
+              >
+                <div className="text-[#5a7a3a] text-[12px] tracking-[2px] mb-3">★★★★★</div>
+                <p className="text-[14px] text-[#3d3f30] leading-relaxed mb-5 italic">{quote}</p>
+                <div className="flex items-center gap-[10px]">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-medium shrink-0"
+                    style={{ background: bg, color }}
+                  >
+                    {init}
+                  </div>
+                  <div>
+                    <div className="text-[13px] font-medium text-[#1e2118]">{name}</div>
+                    <div className="text-[11px] text-[#8a8d75]">{role}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      <footer>
-        <div className="footer-logo">
-          Tavit<span>.in</span>
+      {/* ── PRICING ─────────────────────────────────────────────────── */}
+      <section id="pricing" className="bg-white px-5 md:px-10 py-16 md:py-20">
+        <div className="max-w-[880px] mx-auto">
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={stagger}
+            className="text-center mb-10"
+          >
+            <motion.div
+              variants={fadeUp}
+              className="text-[11px] font-medium tracking-[.08em] uppercase text-[#5a7a3a] mb-2"
+            >
+              pricing
+            </motion.div>
+            <motion.h2
+              variants={fadeUp}
+              className="text-[26px] sm:text-[30px] font-medium text-[#1e2118] leading-[1.25] tracking-tight mb-3"
+            >
+              Simple pricing, no surprises
+            </motion.h2>
+            <motion.p
+              variants={fadeUp}
+              className="text-[15px] text-[#6b7061] leading-relaxed"
+            >
+              Start free. Scale as you grow. All plans include Tally import and GSTR-1/3B.
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+            variants={stagger}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          >
+            {[
+              {
+                tier: "Starter",
+                price: "₹2,999",
+                period: "per month · 1 GSTIN",
+                desc: "For small businesses filing monthly returns and needing basic ITC reconciliation.",
+                features: ["Tally XML import", "GSTR-1 builder", "GSTR-2B reconciliation", "Compliance calendar", "WhatsApp reminders"],
+                featured: false,
+              },
+              {
+                tier: "Growth",
+                price: "₹7,999",
+                period: "per month · up to 3 GSTINs",
+                desc: "For growing MSMEs needing multi-GSTIN support and CA collaboration tools.",
+                features: ["Everything in Starter", "GSTR-3B drafter", "CA dashboard access", "Up to 3 GSTINs", "CSV export for all reports", "Priority support"],
+                featured: true,
+              },
+              {
+                tier: "Professional",
+                price: "₹17,999",
+                period: "per month · unlimited GSTINs",
+                desc: "For large enterprises and CA firms managing multiple companies.",
+                features: ["Everything in Growth", "Unlimited GSTINs", "Multi-company view", "TDS engine (coming)", "Dedicated CA account manager"],
+                featured: false,
+              },
+            ].map(({ tier, price, period, desc, features, featured }) => (
+              <motion.div
+                key={tier}
+                variants={fadeUp}
+                className={`rounded-xl p-7 flex flex-col ${
+                  featured
+                    ? "border-2 border-[#5a7a3a] bg-[#f9faf4] md:scale-105"
+                    : "border border-[#dde0cc] bg-white"
+                }`}
+              >
+                {featured && (
+                  <span className="inline-block bg-[#e8f0da] text-[#2e5a10] text-[10px] font-medium px-[9px] py-[3px] rounded tracking-wide mb-2">
+                    Most popular
+                  </span>
+                )}
+                <div className="text-[12px] font-medium tracking-[.06em] uppercase text-[#5a7a3a] mb-2">
+                  {tier}
+                </div>
+                <div className="text-[32px] font-medium text-[#1e2118] tracking-tight leading-none">
+                  {price}
+                </div>
+                <div className="text-[13px] text-[#8a8d75] mt-1 mb-4">{period}</div>
+                <div className="text-[13px] text-[#6b7061] leading-relaxed mb-5 pb-5 border-b border-[#eaecd8]">
+                  {desc}
+                </div>
+                <ul className="flex flex-col gap-2 mb-6 flex-1 list-none">
+                  {features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[13px] text-[#4a4e36]">
+                      <span className="text-[#5a7a3a] text-[14px] shrink-0 mt-[1px]">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  className={`w-full py-[10px] rounded-[7px] text-[13px] font-medium cursor-pointer transition-all ${
+                    featured
+                      ? "bg-[#1e2118] text-[#e8ddb5] border-none hover:bg-[#2e3320]"
+                      : "bg-transparent border border-[#b8bba0] text-[#1e2118] hover:border-[#5a7a3a] hover:text-[#5a7a3a]"
+                  }`}
+                >
+                  Get started
+                </button>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
-        <ul className="footer-links">
-          <li>
-            <a href="#">Privacy</a>
-          </li>
-          <li>
-            <a href="#">Terms</a>
-          </li>
-          <li>
-            <a href="#">Contact</a>
-          </li>
-          <li>
-            <a href="#">For CAs</a>
-          </li>
+      </section>
+
+      {/* ── CTA ─────────────────────────────────────────────────────── */}
+      <section className="bg-[#1e2118] px-5 md:px-10 py-20 md:py-24 text-center">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={stagger}
+          className="max-w-[560px] mx-auto"
+        >
+          <motion.h2
+            variants={fadeUp}
+            className="text-[28px] sm:text-[36px] font-medium text-[#e8ddb5] tracking-tight leading-[1.2] mb-4"
+          >
+            Stop managing compliance. Let{" "}
+            <span className="gradient-text">Tavit</span> handle it.
+          </motion.h2>
+          <motion.p
+            variants={fadeUp}
+            className="text-[15px] sm:text-[16px] text-[rgba(232,221,181,0.55)] mb-9 leading-relaxed"
+          >
+            Paid and live. Set up your company, import Tally data, and file your
+            first return today.
+          </motion.p>
+          <motion.div
+            variants={fadeUp}
+            className="flex gap-3 justify-center flex-wrap"
+          >
+            <Link
+              href="/auth/login"
+              className="bg-[#7ea860] text-[#1e2118] text-[14px] font-medium px-7 py-[11px] rounded-[8px] no-underline hover:bg-[#9cc47a] transition-colors"
+            >
+              Get started
+            </Link>
+            <button className="bg-transparent text-[#e8ddb5] text-[14px] px-7 py-[11px] rounded-[8px] border border-[rgba(232,221,181,0.3)] hover:border-[rgba(232,221,181,0.6)] transition-colors cursor-pointer">
+              Partner as a CA
+            </button>
+          </motion.div>
+          <motion.div
+            variants={fadeUp}
+            className="mt-7 text-[12px] text-[rgba(232,221,181,0.3)] tracking-wide"
+          >
+            Live product · Cancel anytime · GSTN compliant
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* ── FOOTER ──────────────────────────────────────────────────── */}
+      <footer className="bg-[#13160e] px-5 md:px-10 py-9 flex flex-col sm:flex-row justify-between items-center gap-4 flex-wrap">
+        <div className="text-[16px] font-medium text-[rgba(232,221,181,0.5)]">
+          Tavit<span className="text-[#7ea860]">.in</span>
+        </div>
+        <ul className="flex gap-6 list-none flex-wrap justify-center">
+          {["Privacy", "Terms", "Contact", "For CAs"].map((item) => (
+            <li key={item}>
+              <a href="#" className="text-[rgba(232,221,181,0.25)] text-[12px] no-underline hover:text-[rgba(232,221,181,0.5)] transition-colors">
+                {item}
+              </a>
+            </li>
+          ))}
         </ul>
-        <div className="footer-copy">© 2026 Tavit Technologies Pvt. Ltd.</div>
+        <div className="text-[12px] text-[rgba(232,221,181,0.2)]">
+          © 2026 Tavit Technologies Pvt. Ltd.
+        </div>
       </footer>
     </div>
   );
