@@ -45,7 +45,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Authenticated user — check onboarding status for protected routes
+  // Authenticated user on a protected route that isn't /onboarding:
+  // redirect to /onboarding if they haven't completed it yet.
   if (user && !isPublic && pathname !== '/onboarding') {
     const { data: profile } = await supabase
       .from('profiles')
@@ -60,20 +61,10 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // Fully-onboarded user trying to revisit /onboarding
-  if (user && pathname === '/onboarding') {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarded')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.onboarded) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/dashboard'
-      return NextResponse.redirect(url)
-    }
-  }
+  // NOTE: we deliberately do NOT redirect onboarded users away from /onboarding.
+  // The onboarding page itself checks for an existing company and redirects to
+  // /dashboard when one is found. Redirecting here would cause an infinite loop
+  // when onboarded=true but company_members is missing (partial-failure state).
 
   return supabaseResponse
 }
