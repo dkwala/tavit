@@ -1,7 +1,8 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { saveProfile, type ProfileState } from './actions'
+import Link from 'next/link'
+import { saveCompanyProfile, type CompanyState } from './actions'
 
 function TavitLogo() {
   return (
@@ -46,78 +47,61 @@ function StepIndicator({ step }: { step: number }) {
 type FieldProps = {
   label: string
   name: string
-  type?: string
   placeholder: string
   hint: string
   error?: string
   defaultValue?: string
   maxLength?: number
-  prefix?: string
+  transform?: (v: string) => string
   autoComplete?: string
-  required?: boolean
 }
 
 function FormField({
-  label, name, type = 'text', placeholder, hint, error,
-  defaultValue, maxLength, prefix, autoComplete, required = true,
+  label, name, placeholder, hint, error, defaultValue,
+  maxLength, transform, autoComplete,
 }: FieldProps) {
   const [focused, setFocused] = useState(false)
-  const [showPw, setShowPw] = useState(false)
-  const isPw = type === 'password'
-  const inputType = isPw ? (showPw ? 'text' : 'password') : type
+  const [value, setValue] = useState(defaultValue ?? '')
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = transform ? transform(e.target.value) : e.target.value
+    setValue(v)
+  }
 
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div style={{ marginBottom: 18 }}>
       <label style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         fontSize: 11, fontWeight: 500,
         color: 'rgba(232,221,181,0.55)', marginBottom: 7, letterSpacing: '0.04em',
       }}>
-        <span>{label}{required && <span style={{ color: 'rgba(220,100,80,0.7)', marginLeft: 3 }}>*</span>}</span>
-        {maxLength && <span style={{ color: 'rgba(232,221,181,0.25)', fontWeight: 400, letterSpacing: 0 }}>{maxLength} chars max</span>}
+        <span>{label} <span style={{ color: 'rgba(220,100,80,0.7)' }}>*</span></span>
+        {maxLength && (
+          <span style={{ color: value.length === maxLength ? 'rgba(126,168,96,0.7)' : 'rgba(232,221,181,0.25)', fontWeight: 400, letterSpacing: 0 }}>
+            {value.length}/{maxLength}
+          </span>
+        )}
       </label>
-      <div style={{ position: 'relative' }}>
-        {prefix && (
-          <span style={{
-            position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-            fontSize: 14, color: 'rgba(232,221,181,0.3)', userSelect: 'none', pointerEvents: 'none',
-          }}>{prefix}</span>
-        )}
-        <input
-          type={inputType}
-          name={name}
-          defaultValue={defaultValue}
-          placeholder={placeholder}
-          maxLength={maxLength}
-          autoComplete={autoComplete}
-          required={required}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          style={{
-            width: '100%', background: '#111510',
-            border: `0.5px solid ${error ? 'rgba(220,100,80,0.5)' : focused ? 'rgba(126,168,96,0.6)' : 'rgba(90,122,58,0.25)'}`,
-            borderRadius: 8, color: '#e8ddb5',
-            padding: `11px ${isPw ? '42px' : '14px'} 11px ${prefix ? '28px' : '14px'}`,
-            fontSize: 14, outline: 'none',
-            transition: 'border-color 0.15s', fontFamily: 'inherit',
-            boxSizing: 'border-box',
-          }}
-        />
-        {isPw && (
-          <button
-            type="button"
-            onClick={() => setShowPw(v => !v)}
-            tabIndex={-1}
-            style={{
-              position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-              background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-              color: 'rgba(232,221,181,0.3)', fontSize: 12, lineHeight: 1,
-            }}
-          >
-            {showPw ? 'hide' : 'show'}
-          </button>
-        )}
-      </div>
+      <input
+        type="text"
+        name={name}
+        value={value}
+        onChange={handleChange}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        autoComplete={autoComplete}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          width: '100%', background: '#111510',
+          border: `0.5px solid ${error ? 'rgba(220,100,80,0.5)' : focused ? 'rgba(126,168,96,0.6)' : 'rgba(90,122,58,0.25)'}`,
+          borderRadius: 8, color: '#e8ddb5',
+          padding: '11px 14px', fontSize: 14, outline: 'none',
+          transition: 'border-color 0.15s', fontFamily: 'inherit',
+          letterSpacing: name === 'gstin' || name === 'pan' ? '0.08em' : undefined,
+          boxSizing: 'border-box',
+        }}
+      />
       {error ? (
         <p style={{ fontSize: 11, color: 'rgba(220,100,80,0.8)', marginTop: 5 }}>{error}</p>
       ) : (
@@ -127,10 +111,21 @@ function FormField({
   )
 }
 
-export default function OnboardingForm() {
-  const [state, action, isPending] = useActionState<ProfileState, FormData>(saveProfile, undefined)
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      fontSize: 11, fontWeight: 600, color: 'rgba(126,168,96,0.7)',
+      letterSpacing: '0.1em', textTransform: 'uppercase',
+      marginBottom: 14, marginTop: 8,
+      paddingBottom: 8, borderBottom: '0.5px solid rgba(90,122,58,0.15)',
+    }}>
+      {children}
+    </div>
+  )
+}
 
-  const allFilled = true // server validates; button always enabled so users see field errors
+export default function CompanyForm() {
+  const [state, action, isPending] = useActionState<CompanyState, FormData>(saveCompanyProfile, undefined)
 
   return (
     <div style={{
@@ -154,18 +149,18 @@ export default function OnboardingForm() {
           padding: '24px 0', borderBottom: '0.5px solid rgba(90,122,58,0.1)',
         }}>
           <TavitLogo />
-          <StepIndicator step={2} />
+          <StepIndicator step={3} />
         </div>
 
         {/* Two-column layout */}
         <div style={{
           flex: 1, display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: 48, alignItems: 'center',
+          gap: 48, alignItems: 'start',
           padding: '48px 0',
         }}>
           {/* Left — copy */}
-          <div>
+          <div style={{ paddingTop: 8 }}>
             <div style={{ marginBottom: 32 }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -176,32 +171,40 @@ export default function OnboardingForm() {
                 letterSpacing: '0.07em', textTransform: 'uppercase',
                 marginBottom: 16,
               }}>
-                Step 1 of 2
+                Step 2 of 2 · Last step
               </div>
               <h1 style={{
                 fontSize: 28, fontWeight: 500, color: '#e8ddb5',
                 letterSpacing: '-0.5px', lineHeight: 1.25, marginBottom: 12,
               }}>
-                Create your<br />
-                <span style={{ color: '#7ea860' }}>account</span>
+                Set up your<br />
+                <span style={{ color: '#7ea860' }}>workspace</span>
               </h1>
               <p style={{ fontSize: 14, color: 'rgba(232,221,181,0.45)', lineHeight: 1.7, maxWidth: 320 }}>
-                Set up your personal credentials. Your username is how your team identifies you inside Tavit.
+                We need your company&apos;s tax and address details to pre-fill your GST returns and generate compliant invoices.
               </p>
             </div>
 
-            {/* Feature bullets */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { icon: '🔑', text: 'Secure password login in addition to OTP' },
-                { icon: '👤', text: 'Unique username across all Tavit workspaces' },
-                { icon: '🔒', text: 'Your data is encrypted end-to-end' },
+                { icon: '📋', text: 'GSTIN auto-validates format and state code' },
+                { icon: '🏢', text: 'Address pre-fills your tax invoices' },
+                { icon: '📊', text: 'GSTR-1 and GSTR-3B auto-computed from day one' },
               ].map(item => (
                 <div key={item.icon} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                   <span style={{ fontSize: 15, marginTop: 1 }}>{item.icon}</span>
                   <span style={{ fontSize: 13, color: 'rgba(232,221,181,0.4)', lineHeight: 1.5 }}>{item.text}</span>
                 </div>
               ))}
+            </div>
+
+            <div style={{ marginTop: 32 }}>
+              <Link
+                href="/onboarding"
+                style={{ fontSize: 12, color: 'rgba(126,168,96,0.5)', textDecoration: 'none' }}
+              >
+                ← Back to account details
+              </Link>
             </div>
           </div>
 
@@ -216,51 +219,80 @@ export default function OnboardingForm() {
               fontSize: 16, fontWeight: 500, color: '#e8ddb5',
               letterSpacing: '-0.3px', marginBottom: 6,
             }}>
-              Account details
+              Company details
             </h2>
-            <p style={{ fontSize: 12, color: 'rgba(232,221,181,0.3)', marginBottom: 28, lineHeight: 1.5 }}>
-              Fields marked <span style={{ color: 'rgba(220,100,80,0.7)' }}>*</span> are required.
+            <p style={{ fontSize: 12, color: 'rgba(232,221,181,0.3)', marginBottom: 24, lineHeight: 1.5 }}>
+              All fields are required and will appear on your tax invoices.
             </p>
 
             <form action={action}>
+
+              <SectionHeading>Registration</SectionHeading>
+
               <FormField
-                label="FULL NAME"
-                name="fullName"
-                placeholder="Rahul Sharma"
-                hint="Your real name — shown on invoices and reports"
-                error={state?.errors?.fullName}
-                defaultValue={state?.values?.fullName}
-                autoComplete="name"
+                label="COMPANY NAME"
+                name="companyName"
+                placeholder="Acme Exports Pvt Ltd"
+                hint="Legal name as registered with MCA / ROC"
+                error={state?.errors?.companyName}
+                defaultValue={state?.values?.companyName}
+                autoComplete="organization"
               />
               <FormField
-                label="USERNAME (ACCOUNT ID)"
-                name="username"
-                placeholder="rahul_sharma"
-                hint="3–20 chars · letters, numbers and underscores only · cannot be changed later"
-                error={state?.errors?.username}
-                defaultValue={state?.values?.username}
-                maxLength={20}
-                autoComplete="username"
-                prefix="@"
+                label="GSTIN"
+                name="gstin"
+                placeholder="27AABCP1234C1ZV"
+                hint="15-character GST Identification Number — state code is auto-detected from first 2 digits"
+                error={state?.errors?.gstin}
+                defaultValue={state?.values?.gstin}
+                maxLength={15}
+                transform={v => v.toUpperCase()}
               />
               <FormField
-                label="PASSWORD"
-                name="password"
-                type="password"
-                placeholder="Min. 8 characters"
-                hint="At least 8 characters · mix of letters and numbers recommended"
-                error={state?.errors?.password}
-                autoComplete="new-password"
+                label="PAN"
+                name="pan"
+                placeholder="AABCP1234C"
+                hint="10-character Permanent Account Number — must match the PAN embedded in your GSTIN"
+                error={state?.errors?.pan}
+                defaultValue={state?.values?.pan}
+                maxLength={10}
+                transform={v => v.toUpperCase()}
               />
+
+              <SectionHeading>Registered Address</SectionHeading>
+
               <FormField
-                label="CONFIRM PASSWORD"
-                name="confirmPassword"
-                type="password"
-                placeholder="Re-enter your password"
-                hint="Must match the password above"
-                error={state?.errors?.confirmPassword}
-                autoComplete="new-password"
+                label="STREET / ADDRESS LINE"
+                name="addressLine1"
+                placeholder="Plot 12, MIDC Industrial Area"
+                hint="Door number, building name, street or locality"
+                error={state?.errors?.addressLine1}
+                defaultValue={state?.values?.addressLine1}
+                autoComplete="street-address"
               />
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <FormField
+                  label="CITY"
+                  name="city"
+                  placeholder="Mumbai"
+                  hint="City / district"
+                  error={state?.errors?.city}
+                  defaultValue={state?.values?.city}
+                  autoComplete="address-level2"
+                />
+                <FormField
+                  label="PINCODE"
+                  name="pincode"
+                  placeholder="400093"
+                  hint="6-digit postal code"
+                  error={state?.errors?.pincode}
+                  defaultValue={state?.values?.pincode}
+                  maxLength={6}
+                  transform={v => v.replace(/\D/g, '')}
+                  autoComplete="postal-code"
+                />
+              </div>
 
               {state?.message && (
                 <div style={{
@@ -286,12 +318,12 @@ export default function OnboardingForm() {
                   letterSpacing: '-0.1px',
                 }}
               >
-                {isPending ? 'Saving…' : 'Continue to company setup →'}
+                {isPending ? 'Setting up…' : 'Launch my workspace →'}
               </button>
             </form>
 
             <p style={{ textAlign: 'center', fontSize: 11, color: 'rgba(232,221,181,0.2)', marginTop: 20, lineHeight: 1.6 }}>
-              Next: company name, GSTIN &amp; address
+              Your data is encrypted and never shared with third parties.
             </p>
           </div>
         </div>

@@ -1,142 +1,87 @@
-"use server";
+'use server'
 
-import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { validateGstin, validatePan } from "@/lib/validation";
-import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-function toErrorString(error: unknown): string {
-  if (!error) return "Unknown error";
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message || error.toString();
-  try {
-    const s = JSON.stringify(error);
-    if (s === "{}" || s === "null")
-      return "Database error — check that PAN is exactly 10 chars, GSTIN is 15 chars.";
-    return s;
-  } catch {
-    return String(error);
-  }
-}
-
-export type OnboardingState =
+export type ProfileState =
   | {
       errors?: {
-        companyName?: string;
-        gstin?: string;
-        pan?: string;
-      };
-      message?: string;
+        fullName?: string
+        username?: string
+        password?: string
+        confirmPassword?: string
+      }
+      message?: string
       values?: {
-        companyName?: string;
-        gstin?: string;
-        pan?: string;
-      };
+        fullName?: string
+        username?: string
+      }
     }
-  | undefined;
+  | undefined
 
-export async function saveCompanyProfile(
-  _prevState: OnboardingState,
+const USERNAME_RE = /^[a-z0-9_]+$/
+
+export async function saveProfile(
+  _prevState: ProfileState,
   formData: FormData,
-): Promise<OnboardingState> {
-  const authClient = await createClient();
-  const adminClient = createAdminClient();
+): Promise<ProfileState> {
+  const supabase = await createClient()
 
   const {
     data: { user },
-  } = await authClient.auth.getUser();
-  if (!user) redirect("/auth/login");
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
 
-  const companyName = (formData.get("companyName") as string)?.trim();
-  const gstin = (formData.get("gstin") as string)?.trim().toUpperCase();
-  const pan = (formData.get("pan") as string)?.trim().toUpperCase();
+  const fullName       = (formData.get('fullName')       as string)?.trim()
+  const username       = (formData.get('username')       as string)?.trim().toLowerCase()
+  const password       = (formData.get('password')       as string) ?? ''
+  const confirmPassword = (formData.get('confirmPassword') as string) ?? ''
 
-  const values = { companyName, gstin, pan };
-  const errors: NonNullable<OnboardingState>["errors"] = {};
+  const values = { fullName, username }
+  const errors: NonNullable<ProfileState>['errors'] = {}
 
-  if (!companyName || companyName.length < 2) {
-    errors.companyName = "Company name must be at least 2 characters";
-  }
-  const gstinError = validateGstin(gstin);
-  if (gstinError) errors.gstin = gstinError;
-
-  const panError = validatePan(pan);
-  if (panError) errors.pan = panError;
-
-  if (Object.keys(errors).length > 0) return { errors, values };
-
-  // Derive state code from the first 2 characters of GSTIN (e.g. '27' = Maharashtra)
-  const stateCode = gstin.slice(0, 2);
-
-  // Generate company id here so we don't need to select it back through RLS
-  // (the SELECT policy requires company_members to exist, which we haven't created yet)
-  const companyId = crypto.randomUUID();
-
-  // ── 1. Create company ───────────────────────────────────────────────────────
-  const { error: companyError } = await adminClient
-    .from("companies")
-    .insert({ id: companyId, name: companyName, pan, state_code: stateCode });
-
-  if (companyError) {
-    console.error("company insert error", {
-      code: companyError.code,
-      message: companyError.message,
-      details: companyError.details,
-      hint: companyError.hint,
-      full: JSON.stringify(companyError),
-    });
-    return {
-      message: `Could not create company: ${toErrorString(companyError)}`,
-      values,
-    };
+  // ── Validate full name ────────────────────────────────────────────────────
+  if (!fullName || fullName.length < 2) {
+    errors.fullName = 'Full name must be at least 2 characters'
   }
 
-  // ── 2. Add user as owner (must happen before GSTIN insert due to RLS) ───────
-  const { error: memberError } = await adminClient
-    .from("company_members")
-    .insert({ company_id: companyId, user_id: user.id, role: "owner" });
-
-  if (memberError) {
-    console.error("member insert error", memberError);
-    return {
-      message: `Could not link account: ${toErrorString(memberError)}`,
-      values,
-    };
+  // ── Validate username ─────────────────────────────────────────────────────
+  if (!username || username.length < 3) {
+    errors.username = 'Username must be at least 3 characters'
+  } else if (username.length > 20) {
+    errors.username = 'Username must be 20 characters or fewer'
+  } else if (!USERNAME_RE.test(username)) {
+    errors.username = 'Only lowercase letters, numbers and underscores are allowed'
   }
 
-  // ── 3. Create primary GSTIN (after company_members so RLS owner check passes)
-  const { error: gstinInsertError } = await adminClient.from("gstins").insert({
-    company_id: companyId,
-    gstin,
-    state_code: stateCode,
-  });
-
-  if (gstinInsertError) {
-    console.error("gstin insert error", gstinInsertError);
-    return {
-      message: `Could not save GSTIN: ${toErrorString(gstinInsertError)}`,
-      values,
-    };
+  // ── Validate password ─────────────────────────────────────────────────────
+  if (!password || password.length < 8) {
+    errors.password = 'Password must be at least 8 characters'
+  } else if (password !== confirmPassword) {
+    errors.confirmPassword = 'Passwords do not match'
   }
 
-  // ── 4. Mark profile as onboarded ────────────────────────────────────────────
-  // upsert guards against the edge case where the trigger hasn't created the row yet
-  const { error: profileError } = await adminClient
-    .from("profiles")
-    .upsert({
-      id: user.id,
-      onboarded: true,
-      updated_at: new Date().toISOString(),
-    });
+  if (Object.keys(errors).length > 0) return { errors, values }
+
+  // ── Set password on the Supabase auth user ────────────────────────────────
+  const { error: pwError } = await supabase.auth.updateUser({ password })
+  if (pwError) {
+    return { message: `Could not set password: ${pwError.message}`, values }
+  }
+
+  // ── Persist full_name + username to profiles ──────────────────────────────
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ full_name: fullName, username })
+    .eq('id', user.id)
 
   if (profileError) {
-    console.error("profile update error", profileError);
-    return {
-      message: `Could not update profile: ${toErrorString(profileError)}`,
-      values,
-    };
+    // Unique-constraint violation on username (code 23505)
+    if (profileError.code === '23505') {
+      return { errors: { username: 'That username is already taken — please choose another' }, values }
+    }
+    return { message: `Could not save profile: ${profileError.message}`, values }
   }
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard");
+  redirect('/onboarding/company')
 }

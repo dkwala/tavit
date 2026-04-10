@@ -14,7 +14,7 @@ function TavitLogo() {
 }
 
 function StepIndicator({ step }: { step: number }) {
-  const steps = ['Email', 'Verify', 'Company']
+  const steps = ['Email', 'Verify', 'Profile', 'Company']
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40 }}>
       {steps.map((label, i) => (

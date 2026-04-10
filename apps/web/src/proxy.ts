@@ -45,9 +45,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Authenticated user on a protected route that isn't /onboarding:
-  // redirect to /onboarding if they haven't completed it yet.
-  if (user && !isPublic && pathname !== '/onboarding') {
+  // Authenticated user on a protected route outside the /onboarding/* tree:
+  // redirect to /onboarding (step 1) if they haven't completed onboarding yet.
+  // We use startsWith so both /onboarding and /onboarding/company are excluded.
+  if (user && !isPublic && !pathname.startsWith('/onboarding')) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('onboarded')
