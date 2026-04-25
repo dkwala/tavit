@@ -3,7 +3,9 @@
 import { useState, useRef, useCallback } from 'react'
 import { parseTallyXml, type TallyParseResult } from '@/lib/tally/parser'
 
-type ParsedSummary = TallyParseResult
+type ParsedSummary = TallyParseResult & {
+  warnings?: Array<{ code?: string }>
+}
 
 type UploadState = 'idle' | 'dragging' | 'parsing' | 'preview' | 'importing' | 'done' | 'error'
 
@@ -25,9 +27,21 @@ export default function TallyImportPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [progress, setProgress] = useState(0)
   const [activeTab, setActiveTab] = useState<Tab>('summary')
+  const [rawFile, setRawFile] = useState<File | null>(null)
+  const [importResult, setImportResult] = useState<{
+    inserted: number
+    skipped_duplicates: number
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    warnings: any[]
+  } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const activeGstinId =
+    (globalThis as { activeGstinId?: string }).activeGstinId ?? ''
+  const activeCompanyId =
+    (globalThis as { activeCompanyId?: string }).activeCompanyId ?? ''
 
   const processFile = useCallback((file: File) => {
+    setRawFile(file)
     if (!file.name.toLowerCase().endsWith('.xml')) {
       setErrorMsg('Please upload a TallyPrime XML export file (.xml)')
       setState('error')
@@ -81,30 +95,57 @@ export default function TallyImportPage() {
     if (file) processFile(file)
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (!rawFile) return
     setState('importing')
-    setProgress(0)
-    // Simulate import progress — real API call goes here
-    const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval)
-          setState('done')
-          return 100
-        }
-        return p + Math.floor(Math.random() * 12) + 4
+    setProgress(10)
+    try {
+      const form = new FormData()
+      form.append('file', rawFile)
+      form.append('gstinId', activeGstinId)
+      const uploadRes = await fetch('/api/tally/upload', {
+        method: 'POST', body: form
       })
-    }, 180)
+      if (!uploadRes.ok) throw new Error(await uploadRes.text())
+      const preview = await uploadRes.json()
+      setProgress(50)
+      const confirmRes = await fetch('/api/tally/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: preview.items,
+          gstinId: activeGstinId,
+          companyId: activeCompanyId,
+        }),
+      })
+      if (!confirmRes.ok) throw new Error(await confirmRes.text())
+      const result = await confirmRes.json()
+      setProgress(100)
+      setImportResult(result)
+      setState('done')
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Import failed')
+      setState('error')
+    }
   }
 
   const reset = () => {
     setState('idle')
     setSummary(null)
+    setRawFile(null)
+    setImportResult(null)
     setErrorMsg('')
     setProgress(0)
     setActiveTab('summary')
     if (fileRef.current) fileRef.current.value = ''
   }
+
+  const taxWarningCount =
+    summary?.warnings?.filter(
+      warning =>
+        warning?.code === 'TAX_MISMATCH' ||
+        warning?.code === 'GSTIN_INVALID',
+    ).length ?? 0
 
   return (
     <div style={{ padding: '40px', maxWidth: 860 }}>
@@ -469,6 +510,23 @@ export default function TallyImportPage() {
             </div>
           )}
 
+          {taxWarningCount > 0 && (
+            <div
+              style={{
+                background: 'rgba(212, 164, 57, 0.14)',
+                border: '0.5px solid rgba(212, 164, 57, 0.4)',
+                borderRadius: 8,
+                padding: '12px 14px',
+                marginBottom: 16,
+                color: '#6a5413',
+                fontSize: 12,
+                fontWeight: 500,
+              }}
+            >
+              {taxWarningCount} invoices have tax discrepancies — flagged for CA review
+            </div>
+          )}
+
           {/* Confirm button */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <button
@@ -542,7 +600,13 @@ export default function TallyImportPage() {
             Import complete
           </div>
           <div style={{ fontSize: 13, color: '#6b7061', marginBottom: 32 }}>
-            {summary.vouchers.toLocaleString('en-IN')} vouchers and {summary.ledgers.toLocaleString('en-IN')} ledgers imported successfully.
+            Successfully imported {importResult?.inserted ?? 0} vouchers
+            {importResult && importResult.skipped_duplicates > 0 && (
+              <>
+                <br />
+                {importResult.skipped_duplicates} duplicate vouchers skipped
+              </>
+            )}
           </div>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
             <a

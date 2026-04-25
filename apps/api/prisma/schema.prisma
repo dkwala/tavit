@@ -37,13 +37,15 @@ model Company {
   createdAt            DateTime @default(now())
   deletedAt            DateTime? // Soft-delete flag
 
-  members  CompanyMember[]
-  gstins   Gstin[]
-  taxCodes TaxCode[]
-  vouchers Voucher[]
-  stockItems StockItem[]
-  stockTransactions StockTransaction[]
-  journalEntries JournalEntry[]
+  members              CompanyMember[]
+  gstins               Gstin[]
+  taxCodes             TaxCode[]
+  vouchers             Voucher[]
+  stockItems           StockItem[]
+  stockTransactions    StockTransaction[]
+  journalEntries       JournalEntry[]
+  complianceDeadlines  ComplianceDeadline[]
+  alertPreferences     AlertPreference[]
 
   @@map("companies")
 }
@@ -74,8 +76,9 @@ model Gstin {
   status           String   @default("active") // active|cancelled|suspended
   createdAt        DateTime @default(now())
 
-  company  Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  vouchers Voucher[]
+  company              Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vouchers             Voucher[]
+  complianceDeadlines  ComplianceDeadline[]
 
   @@index([companyId])
   @@map("gstins")
@@ -109,6 +112,7 @@ model TaxCode {
 /// Voucher — immutable invoices (sales, purchase, credit notes, debit notes)
 model Voucher {
   id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tallyGuid           String?  @unique   // TallyPrime GUID — prevents duplicate imports
   companyId           String   @db.Uuid
   gstinId             String   @db.Uuid // Which GSTIN issued this
   voucherType         String   // sales_invoice|purchase_invoice|credit_note|debit_note
@@ -164,6 +168,7 @@ model VoucherLineItem {
   cgstAmount  Int      // Paise
   sgstAmount  Int      // Paise
   igstAmount  Int      // Paise
+  cessAmount  Int      @default(0)   // Paise — cess for tobacco/coal/aerated drinks
   lineTotal   Int      // Paise (lineAmount + taxes)
   createdAt   DateTime @default(now())
 
@@ -224,6 +229,75 @@ model StockTransaction {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Compliance Tables
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// GST return deadline — one row per GSTIN × return-type × period
+model ComplianceDeadline {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String   @db.Uuid
+  gstinId     String   @db.Uuid
+  returnType  String   // GSTR-1|GSTR-3B|GSTR-2B|GSTR-9|GSTR-9C|GSTR-4|CMP-08
+  periodMonth Int      @db.SmallInt
+  periodYear  Int      @db.SmallInt
+  dueDate     DateTime @db.Date
+  filingDate  DateTime? @db.Date
+  status      String   @default("pending") // pending|filed|overdue
+  isNilReturn Boolean  @default(false)
+  taxPayable  Int      @default(0) // Paise
+  source      String   @default("system")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company   Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  gstin     Gstin        @relation(fields: [gstinId],   references: [id], onDelete: Cascade)
+  alertLogs AlertLog[]
+
+  @@unique([gstinId, returnType, periodMonth, periodYear])
+  @@index([companyId])
+  @@index([gstinId])
+  @@index([dueDate])
+  @@map("compliance_deadlines")
+}
+
+/// Per-user, per-company alert preferences
+model AlertPreference {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String   @db.Uuid
+  companyId        String   @db.Uuid
+  alertDays        Int[]    // e.g. [7, 3, 1]
+  emailEnabled     Boolean  @default(true)
+  whatsappEnabled  Boolean  @default(false)
+  whatsappNumber   String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+  @@map("alert_preferences")
+}
+
+/// Audit log of sent alerts — also deduplicates so each alert is sent once
+model AlertLog {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  deadlineId    String   @db.Uuid
+  userId        String   @db.Uuid
+  alertType     String   // email|whatsapp
+  daysBefore    Int
+  status        String   // sent|failed
+  errorMessage  String?
+  sentAt        DateTime @default(now())
+
+  deadline ComplianceDeadline @relation(fields: [deadlineId], references: [id], onDelete: Cascade)
+
+  @@unique([deadlineId, userId, alertType, daysBefore])
+  @@index([deadlineId])
+  @@map("alert_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Ledger & Accounting Tables
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -246,3 +320,12 @@ model JournalEntry {
   @@index([voucherId])
   @@map("journal_entries")
 }
+In apps/api/prisma/schema.prisma, make exactly two changes:
+
+CHANGE 1 — In the Voucher model, add this field after the existing id field:
+  tallyGuid   String?  @unique   // TallyPrime GUID — prevents duplicate imports
+
+CHANGE 2 — In the VoucherLineItem model, add this field after cessAmount if it exists, or after sgstAmount if it does not:
+  cessAmount  Int      @default(0)   // Paise — cess for tobacco/coal/aerated drinks
+
+Do not change any other field. Do not rename anything. Do not reformat the file.
