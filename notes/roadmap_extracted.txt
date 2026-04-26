@@ -1,0 +1,910 @@
+TECHNICAL BLUEPRINT
+Product Development Roadmap
+MVP
+Growth
+Full Production
+A complete engineering blueprint for an AI-powered enterprise automation SaaS platform: every
+module, every technology decision, every build phase from Day 1 prototype to scaled
+production system.
+March 2026 | Engineering Division | Confidential
+4 Phases
+3 Layers
+8 Modules
+18 Months
+Scale
+Production
+Enterprise
+Frontend · Backend · AI Engine
+Finance, Inventory, HR,
+Analytics...
+From idea to 1,000+ enterprise
+customers
+PRODUCT DEVELOPMENT ROADMAP  MVP TO PRODUCTION
+Technical Blueprint 2026
+Page 2
+TABLE OF CONTENTS
+1.
+Product Architecture Overview
+2.
+Phase 1  Foundation MVP (Months 14)
+3.
+Phase 2  Growth Product (Months 510)
+4.
+Phase 3  Full Production (Months 1118)
+10
+5.
+Phase 4  Enterprise Scale (Months 18+)
+13
+6.
+Complete Tech Stack Reference
+15
+7.
+Database & Data Architecture
+17
+8.
+AI & Agent Engine Architecture
+18
+9.
+Security, Compliance & DPDP Architecture
+19
+10.
+Infrastructure, DevOps & CI/CD
+20
+11.
+Integration Catalogue
+21
+12.
+Team Structure per Phase
+22
+Page 3
+1. PRODUCT ARCHITECTURE OVERVIEW
+The three-layer system that powers every feature
+1.1 System architecture in one view
+The platform is built as three distinct layers that communicate through well-defined interfaces. Each layer can be
+developed, tested, and scaled independently  critical for a small founding team building quickly.
+Layer 1
+Presentation
+React Web App, React Native
+Mobile, WhatsApp Bot
+Layer 2
+Business Logic
+Node.js / NestJS API + Python
+FastAPI for AI
+Layer 3 Data +
+AI
+PostgreSQL + Redis + S3 + AI
+model services
+External
+Integrations
+GSTN, CBDT, Banks, NBFC,
+WhatsApp, Sarvam AI
+1.2 Four phases from prototype to enterprise
+Phase 1
+Months 14
+Foundation MVP
+GST agent + Tally import + basic dashboard. 5 design partners. Proves
+the core automation works.
+Phase 2
+Months 510
+Growth Product
+Inventory agent + bank reconciliation + WhatsApp bot + CA dashboard.
+First 200 paying customers.
+Phase 3
+Months
+1118
+HR/payroll + multi-entity + embedded credit + advanced analytics.
+Series A. 1,000+ customers.
+Phase 4
+Months 18+
+Enterprise Scale
+White-labelling + on-premise option + API marketplace + SAP/Oracle
+connectors. 5,000+ customers.
+Non-negotiable architecture decision: the compliance rules engine is NEVER vibe-coded. Every
+GST, TDS, ITC, and reconciliation calculation is written manually, unit-tested against 50+ real-world
+scenarios, and reviewed by a practising CA before any customer sees it. Everything else can move
+fast  this cannot.
+Page 4
+Phase
+Goal: 5 design partners using the product daily. GST auto-filing working end-to-end. Tally data
+importing correctly. Zero manual GST work for at least 3 of the 5 partners.
+2.1 MVP module list  what you build and how
+Legend: GREEN = vibe code freely | RED = write manually + test | PURPLE = use existing API/SDK
+Tally XML importer
+VIBE CODE
+Reads TallyPrime XML export files, maps ledger masters + vouchers + stock items to your schema. The #1 Day-1
+feature  without it nobody onboards.
+Parse XML structure | Map 47 voucher types | Handle encoding errors | Incremental sync
+GST calculation engine
+BUILD
+MANUALLY
+Computes CGST/SGST/IGST, applies correct rates by HSN/SAC, handles reverse charge, identifies zero-rated and
+exempt supplies.
+HSN code
+rate lookup | CGST/SGST/IGST split logic | RCM identification | SEZ handling
+GSTR-1 auto-builder
+Aggregates outward supplies by party, HSN, tax rate. Produces GSTR-1 JSON in the exact format GSTN expects.
+B2B / B2C / B2CL / CDNR tables | HSN summary | Amendment handling | JSON validation
+GSTR-2B reconciliation
+Pulls GSTR-2B from GSTN via GSP. Matches against purchase register. Flags: matched, unmatched, amended,
+pending.
+GSTN API pull | Fuzzy GSTIN matching | ITC eligibility check | Mismatch export
+GSTR-3B auto-drafter
+Combines GSTR-1 output + 2B reconciliation to pre-fill GSTR-3B. Human reviews, agent files via GSP.
+Auto-compute table values | ITC reversal calculation | Cash ledger check | GSP filing call
+TDS deduction engine
+Page 5
+Identifies TDS-applicable payments by vendor + section. Accumulates threshold. Books deduction entry. Schedules
+challan.
+Section mapping (194C/J/I/H) | Threshold accumulation | Surcharge + cess | Challan generation
+Compliance calendar
+Tracks all filing due dates. Sends alerts 7/3/1 days before. Updates automatically when new circulars are detected.
+Central + state deadlines | WhatsApp + email alerts | CA portal view | Penalty calculator
+Basic web dashboard
+Company overview: compliance status, upcoming deadlines, recent filings, ITC summary. Built in React.
+Compliance health score | Due date timeline | ITC mismatch count | Recent activity feed
+User auth + company setup
+Email/OTP login, company onboarding, GSTIN registration, CA portal access, role management (owner / accountant /
+CA).
+OTP auth via Firebase | GSTIN lookup | Role-based access | Multi-GSTIN support
+GSP integration layer
+Connects to MasterGST or GSTHero GSP for GSTN API access. Handles auth, rate limits, error codes, retries with
+idempotency.
+GSP authentication | GSTN error handling | Idempotency keys | Retry with backoff
+2.2 Phase 1 tech stack  what you actually use
+Layer
+Technology
+Why this choice
+Alternative
+Frontend
+React 18 + Next.js
+14
+App Router, Server Components for fast load.
+Tailwind CSS for styling. shadcn/ui for
+components. Cursor vibe-codes all of this.
+Remix,
+Vite+React
+Mobile
+React Native +
+Expo
+Cross-platform iOS + Android. Shares business
+logic with web. Expo Go for rapid design-partner
+testing.
+Flutter, native
+Backend API
+Node.js 20 +
+NestJS
+TypeScript throughout. Modular architecture.
+Guards for auth. Interceptors for logging. Pipes for
+validation.
+Fastify, Express
+Compliance engine
+Python 3.12 +
+FastAPI
+Isolated microservice for all GST/TDS logic.
+Python's decimal module for exact arithmetic 
+no float rounding errors.
+Node.js only
+Database
+PostgreSQL 16
+(Supabase)
+Row-level security for multi-tenancy. JSONB for
+flexible Tally data. pgvector for future AI
+embeddings.
+MySQL,
+MongoDB
+Page 6
+Cache
+Redis (Upstash)
+GST rate lookups, GSTIN validation cache,
+session storage, rate limiting. Serverless Redis 
+no infra to manage.
+Memcached
+File storage
+AWS S3 (Mumbai)
+Invoice files, Tally XML imports, generated PDF
+returns. Data residency in India  mandatory for
+DPDP.
+Cloudflare R2
+Auth
+Supabase Auth +
+Firebase OTP
+Supabase for email/password/JWT. Firebase for
+Indian mobile OTP  best delivery rates for +91
+numbers.
+Auth0, Clerk
+Invoice OCR
+AWS Textract
+Best-in-class accuracy on Indian invoice formats.
+Handles printed, handwritten, mixed-language.
+INR 0.015/page.
+Google
+Document AI
+GSP / GSTN
+MasterGST or
+GSTHero
+GSTN-certified GSP for all government portal
+interactions. Never build direct GSTN integration
+ use a certified GSP.
+ClearTax GSP
+WhatsApp
+Interakt or Wati
+WhatsApp Business Cloud API wrapper. Webhook
+handling, message templates, session
+management.
+Gupshup,
+AiSensy
+Email
+Resend
+Modern transactional email API. Excellent
+deliverability. React Email for templates.
+Generous free tier.
+SendGrid, SES
+Deployment
+Vercel (frontend)
++ Railway
+(backend)
+Vercel for Next.js  zero config, global CDN.
+Railway for NestJS + FastAPI  simpler than
+AWS at MVP stage.
+AWS, Fly.io
+Monitoring
+Sentry + Axiom
+Sentry for error tracking with full stack traces.
+Axiom for structured logs. Both have generous
+free tiers.
+Datadog, New
+Relic
+2.3 Phase 1 folder structure
+Monorepo using Turborepo  shared types between frontend and backend from day one:
+apps/
+web/
+Next.js 14 web app (Cursor vibe-coded)
+mobile/
+React Native + Expo
+api/
+NestJS backend (TypeScript)
+compliance/
+Python FastAPI compliance engine
+packages/
+database/
+Prisma schema + migrations
+types/
+Shared TypeScript interfaces
+ui/
+Shared component library
+config/
+ESLint, TypeScript, Tailwind configs
+gstn-client/
+GSP API client (manually written)
+gst-engine/
+Python GST calculation library (manually written)
+scripts/
+seed-hsn-rates.ts
+Load 5,000+ HSN codes with rates
+test-scenarios/
+50+ real-world GST test cases
+Page 7
+Phase 1 exit criteria: (1) 5 design partners onboarded, Tally data imported correctly. (2) GSTR-1 and
+GSTR-3B auto-drafted with zero errors on test data. (3) ITC reconciliation catching mismatches that
+CA confirms are real. (4) Zero compliance calculation failures in 2 full weeks of daily use. Do NOT
+proceed to Phase 2 until all 4 are true.
+Page 8
+Goal: 200 paying customers. CA channel generating 30+ referrals/month. Inventory agent live.
+WhatsApp bot handling 80% of routine queries. Bank reconciliation automating overnight.
+3.1 New modules added in Phase 2
+Smart bank reconciliation
+Auto-imports bank statement via Account Aggregator framework. AI matches transactions to ledger entries. Flags
+anomalies.
+AA framework (Sahamati) | Fuzzy matching algorithm | Anomaly detection | Daily auto-run
+WhatsApp agent interface
+Conversational interface for business queries and actions. Owner asks: 'What's outstanding from Ramesh?'  gets
+answer in 10 seconds.
+Intent classification | Entity extraction | Ledger query engine | Action confirmation flow
+Inventory management
+SKU tracking, stock levels, godown-wise inventory, stock valuation (FIFO/FIFO/Weighted Average).
+Stock in/out vouchers | Godown management | Reorder alerts | Stock ageing report
+Demand forecasting agent
+Per-company ML model trained on 12+ months of sales history. Predicts SKU-level demand 4/8/12 weeks ahead.
+ARIMA baseline model | Seasonality detection | Festive calendar overlay | SKU-level output
+Auto PO generation
+When stock hits reorder point, agent drafts PO to preferred supplier. Routes for approval or auto-sends based on rules.
+Reorder point engine | Preferred supplier logic | PO template generation | Approval workflow
+3-way GRN matching
+Matches PO
+Goods Receipt Note
+Vendor Invoice automatically. Books inventory receipt and payable in one
+action.
+Page 9
+PO-GRN-Invoice matching | Tolerance rules | Exception handling | Auto-booking
+CA partner dashboard
+CAs see all their clients' compliance health in one view. Compliance status, upcoming filings, ITC alerts across all
+companies.
+Multi-company view | Compliance score per client | Bulk actions | CA revenue tracking
+Collections agent
+Identifies overdue invoices. Sends personalised WhatsApp reminders with UPI payment link. Escalates on schedule.
+Logs all actions.
+Ageing bucket logic | WhatsApp reminder templates | UPI link generation | Escalation rules
+Advance tax calculator
+Computes quarterly advance tax installments based on current year P
+&L; projection. Alerts on due dates with challan.
+&L; projection model | Section 234B/C calculator | Challan generation | Due date alerts
+Document vault
+Encrypted storage for all financial documents  invoices, returns, bank statements, audit reports. Searchable with AI.
+AES-256 encryption | AI-powered search | GSTIN-linked tagging | Retention policy
+3.2 Phase 2 tech additions
+Agent framework
+LangGraph (Python)
+Stateful multi-step agent workflows. Better than
+LangChain for compliance agents that need
+deterministic steps + human-in-loop.
+CrewAI,
+AutoGen
+LLM
+Claude 3.5 Sonnet
+API
+Best reasoning for compliance edge cases and
+Hindi language understanding. Haiku for simple
+classification tasks (lower cost).
+GPT-4o, Gemini
+Vector DB
+pgvector
+(PostgreSQL)
+Store embeddings for document search and
+similar-transaction lookup. Avoid a separate vector
+DB at this scale.
+Pinecone,
+Weaviate
+Hindi NLP
+Sarvam AI APIs
+Saaras v3 for speech-to-text (Hindi + code-mixed).
+Bulbul v3 for text-to-speech. Best for Indian
+business language.
+Bhashini (free,
+slower)
+ML serving
+Python FastAPI +
+Modal
+Modal for serverless GPU inference of demand
+forecasting models. Scale to zero when not in use.
+AWS SageMaker
+Page 10
+Job queue
+BullMQ
+(Redis-backed)
+Background jobs for reconciliation, filing,
+forecasting, notifications. Retry logic, priority
+queues, dead letter.
+Celery, Temporal
+Account Aggregator
+Finvu or OneMoney
+SDK
+RBI-regulated AA framework for bank statement
+pull. Customer consent-based. Required for bank
+reconciliation.
+Direct bank
+scraping (illegal)
+Search
+Typesense
+(self-hosted)
+Fast full-text search for invoices, ledger entries,
+parties. Much simpler than Elasticsearch at this
+scale.
+Elasticsearch,
+Algolia
+Real-time
+Supabase Realtime
+WebSocket subscriptions for live dashboard
+updates  compliance status changes,
+reconciliation progress.
+Pusher, Ably
+Mobile state
+Zustand + React
+Query
+Zustand for global app state. React Query for
+server state + offline caching. Works with
+offline-first.
+Redux, MobX
+Page 11
+Months 1118
+Goal: 1,000 paying customers.
+1 Cr+ MRR. HR/payroll module live. Embedded credit with NBFC
+partner. Series A raised. Multi-state, multi-entity companies onboarded.
+4.1 New modules in Phase 3
+HR & payroll engine
+Complete payroll: attendance, variable pay, reimbursements, TDS on salary, PF, ESI, professional tax. All Labour
+Code compliant.
+Attendance integration | Gross-to-net calculation | Form 16 generation | PF/ESI auto-filing
+Multi-entity consolidation
+Single login for business groups with multiple GSTINs, companies, LLPs. Consolidated P
+&L;
+, balance sheet, cash flow.
+Intercompany elimination | Consolidated GST | Group-level analytics | Entity mapping
+Embedded credit module
+One-click working capital loan application using 6 months of GST data + bank turnover + financials. NBFC partnership.
+Account Aggregator data pull | Credit scoring model | NBFC API integration | Loan tracking
+Advanced analytics & MIS
+AI-generated management reports. Cash flow forecast, profitability by product/customer, trend analysis.
+&L; attribution | Cash flow waterfall | Customer profitability | Trend anomaly alerts
+Labour compliance module
+New Labour Codes (Wage, SS, IR, OSH). State-wise minimum wage tracking. Automated ECR generation for PF
+portal.
+Wage Code compliance | ESIC filing | Minimum wage alerts | ECR generation
+E-invoicing automation
+Auto-generates IRN from every eligible invoice. QR code embedding. Cancellation within 24 hours. Integration with
+ERP.
+Page 12
+IRN generation via IRP | QR code embedding | Cancellation workflow | Bulk IRN generation
+Export documentation
+Export invoices, shipping bills, ARE-1 forms, RoDTEP/RoSCTL tracking, Letter of Undertaking management.
+Export invoice format | Shipping bill data | RoDTEP claim tracking | LUT management
+Audit trail & reports
+Immutable audit log of every agent action. UDIN-ready audit reports, board-ready financial summaries.
+Immutable event log | Change history | Audit report generation | CA review workflow
+4.2 Phase 3 infrastructure upgrades
+Component
+Decision
+Details
+Move to AWS
+Migrate from
+Railway to AWS ECS
+Fargate
+Financial data requires enterprise-grade
+infrastructure. ECS Fargate = serverless
+containers. RDS Aurora PostgreSQL for managed
+DB. ElastiCache for Redis.
+GCP, Azure
+CDN & performance
+AWS CloudFront +
+edge caching
+200ms response times across India.
+Lambda@Edge for auth. S3 + CloudFront for all
+static assets.
+Cloudflare
+Database scaling
+Read replicas +
+connection pooling
+PgBouncer for connection pooling. Read replicas
+for analytics queries. Automated backups every 6
+hours.
+Sharding (too
+early)
+Observability
+Datadog APM
+Full distributed tracing across NestJS + FastAPI.
+Custom dashboards for compliance SLA
+monitoring. Alert on p99 latency.
+New Relic,
+Grafana
+Security scanning
+Snyk + OWASP ZAP
+Automated dependency vulnerability scanning in
+CI. OWASP ZAP for API security testing in
+staging. SOC 2 Type II roadmap.
+Manual audits
+only
+Disaster recovery
+Multi-AZ +
+automated failover
+RDS Multi-AZ for DB. ECS across 2 AZs. RTO <
+15 min, RPO < 1 hour.
+Single AZ (risky)
+Page 13
+Goal: 5,000+ customers. White-label offering for banks/NBFCs. API marketplace for third-party
+developers. On-premise option for large enterprises. Expansion to MENA/Southeast Asia.
+5.1 Enterprise-only capabilities
+API platform
+Public REST + GraphQL API for third-party integrations. Developer portal, API keys, rate limiting, usage analytics.
+OAuth 2.0 for partners | Versioned API | Developer docs | Usage metering
+White-label engine
+Full rebranding for bank/NBFC partners. Custom domain, logo, colour scheme, feature flags per partner.
+Tenant theming | Feature flags | Custom domain SSL | Partner billing
+SAP / Oracle connector
+Bi-directional data sync with SAP B1, SAP S/4HANA, Oracle NetSuite. Real-time via webhooks, batch via scheduled
+jobs.
+SAP BAPI/RFC integration | Oracle SuiteScript | Field mapping UI | Conflict resolution
+On-premise deployment
+Docker Compose + Kubernetes Helm chart for enterprise self-hosting. Air-gapped mode for sensitive industries.
+Docker image registry | Helm chart | Air-gap mode | Licence server
+Advanced AI  per-company models
+Fine-tuned models per large enterprise. Company-specific ledger head prediction, custom compliance rules, domain
+vocab.
+Fine-tuning pipeline | Per-tenant model storage | Model versioning | A/B eval framework
+Cross-border compliance
+GST for exports, FEMA compliance, transfer pricing, multi-currency ledger, international e-invoicing formats.
+FEMA transaction flagging | Transfer pricing alerts | IFRS/IND AS reports | Multi-currency
+Page 14
+6. COMPLETE TECH STACK REFERENCE
+Every technology decision in one place with rationale
+6.1 Frontend stack
+Framework
+Next.js 14
+Language
+TypeScript 5.x
+Styling
+Tailwind CSS 3.x
+State
+management
+Forms
+React Hook Form +
+Zod
+Charts
+Recharts + Tremor
+Tables
+TanStack Table v8
+React Native 0.74 +
+Expo 51
+Offline
+WatermelonDB
+i18n
+next-intl
+6.2 Backend stack
+Primary API
+NestJS 10 (Node.js
+20)
+Compliance
+engine
+ORM
+Prisma 5
+Validation
+Zod (Node) +
+Pydantic (Python)
+Event bus
+Redis Pub/Sub
+(MVP)
+Kafka
+(Phase 3)
+File processing
+Multer + Sharp
+Page 15
+PDF generation
+Puppeteer +
+Handlebars
+Cron jobs
+NestJS Schedule
+Testing
+Jest + Supertest +
+Pytest
+Page 16
+7. DATABASE & DATA ARCHITECTURE
+Schema design for multi-tenant financial data
+7.1 Core schema design principles
+Multi-tenancy
+Row-level security (RLS) in PostgreSQL. Every table has company_id. Tenant isolation
+enforced at DB level  not just application level.
+Financial precision
+All monetary amounts stored as INTEGER (paise)  never FLOAT. GST rates stored as
+NUMERIC(5,2). Eliminates floating-point errors.
+Audit immutability
+Financial vouchers are NEVER updated or deleted. Corrections are new reversal entries.
+Full audit trail by design.
+Soft deletes
+All records use deleted_at timestamp, never hard deletes. GDPR/DPDP right-to-erasure
+handled separately via anonymisation.
+Event sourcing (Phase
+3)
+Agent actions emit events to an immutable event log. Current state is derived from events.
+Full replay capability.
+7.2 Key tables (simplified)
+companies
+id, gstin, pan, name, state_code, financial_year_start, tier, created_at
+gstins
+id, company_id, gstin, trade_name, state_code, registration_type, status
+vouchers
+id, company_id, voucher_type, voucher_number, date, party_id, amount_paise,
+gst_json, tally_guid
+gst_returns
+id, company_id, gstin, return_type, period, status, filed_at, arn, irn
+itc_reconciliation
+id, company_id, gstin, period, gstr2b_itc_paise, claimed_itc_paise, mismatch_paise,
+status
+tds_transactions
+id, company_id, vendor_id, section, gross_amount_paise, tds_paise, challan_id, period
+inventory_items
+id, company_id, item_name, hsn_code, unit, reorder_point, last_cost_paise
+stock_entries
+id, company_id, item_id, entry_type, quantity, rate_paise, godown_id, voucher_id
+agent_actions
+id, company_id, agent_type, action, payload_json, status, human_approved_at,
+executed_at
+compliance_calendar
+id, company_id, filing_type, due_date, status, filed_at, penalty_applicable
+7.3 Caching strategy (Redis)
+Page 17
+GST rate cache
+tax rate lookups. TTL: 24 hours. Updated when GST Council notification
+detected.
+GSTIN validation
+GSTIN
+business name + state. TTL: 7 days. Reduces GSTN API calls by 80%.
+Session tokens
+JWT + refresh token storage. TTL: 15 min / 7 days. Blacklist for logout.
+Job deduplication
+Prevent duplicate compliance filing jobs. Idempotency key TTL: 24 hours.
+Rate limiting
+Per-user API rate limits. Sliding window counter. 100 req/min for standard, 500 for CA
+partners.
+Page 18
+8. AI & AGENT ENGINE ARCHITECTURE
+How the intelligent automation layer is built
+8.1 Agent types and their tech
+GST Filing Agent
+LangGraph +
+Claude Sonnet
+ITC Reconciliation
+Agent
+Python rules
+engine + Claude
+for edge cases
+Bank Reconciliation
+Python + fuzzy
+matching
+(RapidFuzz)
+Demand Forecasting
+Python +
+statsmodels +
+LightGBM
+Collections Agent
+NestJS scheduler
++ WhatsApp API
+WhatsApp Query
+Claude Haiku +
+intent classifier
+Calendar Agent
+Cron + rules
+8.2 The human-in-the-loop design  critical for compliance
+GSTR-3B filing
+Agent drafts
+finance manager reviews
+one-click approve
+agent files. Human
+approval ALWAYS required before any government filing.
+TDS payment
+Agent calculates and books deduction
+human approves challan amount
+agent
+processes payment. No auto-payment ever without human confirmation.
+PO generation
+Agent drafts PO when reorder triggered
+purchase manager approves with one tap
+agent sends to supplier. Optional: auto-approve for repeat POs under
+X.
+Bank reconciliation
+Agent runs overnight, auto-matches 90%+ entries
+human reviews exceptions list next
+morning
+approves corrections.
+Loan application
+Agent pre-fills application from financial data
+owner reviews and signs digitally
+submits to NBFC. Never auto-submitted.
+Page 19
+The most important AI architecture decision: separate 'decide' from 'execute'. The agent decides
+what to do and prepares the action. The human executes (or approves auto-execution). This design
+means an AI hallucination never directly causes a financial error  it only causes an incorrect
+suggestion that a human can reject.
+Page 20
+9. SECURITY, COMPLIANCE & DPDP ARCHITECTURE
+Building trust with enterprises that share financial data
+9.1 Data security layers
+Encryption at rest
+AES-256 via AWS KMS. Field-level encryption for PAN, Aadhaar-linked data, bank
+account numbers. GSTN credentials stored in AWS Secrets Manager.
+Encryption in transit
+TLS 1.3 everywhere. Certificate pinning on mobile app. HSTS headers. No HTTP
+anywhere in production.
+Authentication
+Supabase JWT (15-min access tokens). Refresh token rotation. OTP via Firebase for all
+logins. MFA mandatory for CA partner accounts.
+Authorisation
+Row-Level Security in PostgreSQL  tenants cannot access each other's data even with
+a SQL injection. Role-based access: owner > CFO > accountant > viewer.
+API security
+Rate limiting (100 req/min standard). OWASP API Top 10 compliance. Input sanitisation
+via Zod. SQL injection impossible via Prisma parameterised queries.
+Audit logging
+Immutable append-only log of every data access and modification. Includes: user,
+timestamp, IP, action, before/after values. Retained 7 years.
+Penetration testing
+Annual external pentest from Phase 3. Automated OWASP ZAP scans in CI/CD pipeline.
+9.2 DPDP Act 2023 compliance checklist
+Consent management
+Explicit consent collected at signup for each data processing purpose. Granular: billing
+data, analytics, credit assessment are separate consents.
+Data minimisation
+Collect only what's needed for each feature. Aadhaar number never stored  only
+Aadhaar e-sign token.
+Right to erasure
+Customer-initiated deletion triggers: anonymise personal fields, retain financial records as
+legally required (7 years), delete analytics data.
+Data breach response
+72-hour breach notification pipeline. Automated detection via AWS GuardDuty. Incident
+response runbook documented.
+Data localisation
+All data stored in AWS Mumbai (ap-south-1). No cross-border transfer of personal
+financial data.
+Data Protection Officer
+Appoint DPO from Phase 3 (mandatory for financial data processors). DPO contact visible
+in product and privacy policy.
+Privacy by design
+Privacy impact assessment for each new feature before development. Data model
+reviewed against DPDP requirements at design stage.
+Page 21
+10. INFRASTRUCTURE, DEVOPS & CI/CD
+How code goes from laptop to production safely
+10.1 CI/CD pipeline
+Version control
+GitHub monorepo. Branch strategy: main (production), develop (staging), feature/* (individual
+work). PRs required, no direct pushes to main.
+CI (GitHub Actions)
+On every PR: TypeScript type check
+ESLint
+unit tests
+integration tests
+compliance test suite (50+ scenarios)
+build check.
+Compliance gate
+GST/TDS calculation tests MUST all pass before merge. Any failure blocks the PR
+regardless of other checks passing.
+Staging deployment
+Auto-deploy develop branch to staging on Vercel + Railway. Staging uses
+production-equivalent data (anonymised). CA partner has staging access.
+deployment
+Manual trigger required for production deploys. Blue-green deployment. Automatic rollback if
+error rate spikes within 5 minutes.
+Database migrations
+Prisma migrations run in CI against staging first. Production migrations require explicit
+approval and run in maintenance window.
+Secrets management
+AWS Secrets Manager for production. GitHub Secrets for CI. Never in .env files in repo.
+10.2 Environment architecture
+Local
+Developer's laptop. Docker Compose for PostgreSQL + Redis. Ngrok for WhatsApp webhook
+testing. .env.local file (gitignored).
+Staging
+Vercel preview + Railway staging. Real GSTN Sandbox API. WhatsApp test numbers.
+Auto-seeded with anonymised company data.
+(Phase 12)
+Vercel (frontend) + Railway (backend). Supabase managed PostgreSQL. Upstash Redis. Starts at
+15,000/month infra cost.
+(Phase 3+)
+AWS ECS Fargate + RDS Aurora + ElastiCache. Multi-AZ. CloudFront CDN. WAF for API
+protection. ~
+80,000/month at 1,000 customers.
+10.3 Monitoring & alerting
+Error tracking
+Sentry  captures all unhandled errors with full stack trace, user context, and request data. Alerts
+to Slack for p0 errors.
+APM
+Datadog APM from Phase 3. Distributed traces across NestJS + FastAPI + workers. Custom
+dashboards: compliance SLA, reconciliation success rate, filing latency.
+Page 22
+Uptime
+Better Uptime (external monitoring). 1-min check interval. Status page at status.yourproduct.com.
+SMS + call alert for founders on downtime.
+Business
+metrics
+PostHog for product analytics  feature adoption, funnel analysis. Custom event:
+'compliance_agent_completed', 'itc_mismatch_found', 'filing_submitted'.
+SLA
+Custom dashboard: % filings completed before due date, % reconciliations with zero unmatched
+entries, agent error rate per company.
+Page 23
+11. INTEGRATION CATALOGUE
+Every external system you connect to and how
+11.1 Government integrations (manual code  no shortcuts)
+GSTN via GSP
+MasterGST or GSTHero API. Auth: GSP username + password + IP whitelist. Endpoints:
+GSTR-1 push, GSTR-3B push, GSTR-2B pull, GSTIN validation, e-invoicing (IRP). CRITICAL:
+implement idempotency on all write calls.
+CBDT (TDS)
+TRACES API for TDS certificate download. NSDL/Protean for TDS challan payment (via net
+banking integration). Form 26AS pull for advance tax reconciliation.
+MCA/ROC
+No public API  use Selenium-based automation for ROC filing status checks. Document filing
+via V3 API (REST). DIN/GSTIN lookup via MCA portal scraping.
+EPFO (PF)
+ECR upload via REST API. EPFO UAN generation for new employees. KYC seeding.
+Passbook pull for employee portal.
+ESIC
+ESIC e-Pehchaan API for contributions filing. Employee registration. IP number generation.
+11.2 Financial integrations
+Account
+Aggregator
+Finvu SDK or OneMoney SDK. Consent management, FI data pull (bank statements, mutual
+funds, insurance). Used for bank reconciliation + credit scoring.
+UPI payments
+Razorpay UPI API for payment link generation in collection reminders. RazorpayX for business
+banking integration (vendor payments).
+Tally
+XML import via Tally's built-in HTTP XML server (port 9000). TDL scripts for data export. Sync
+runs every 4 hours.
+Busy / Marg ERP
+Database-level integration via ODBC connector. Read-only access to extract vouchers and
+masters.
+NBFC (credit)
+Custom API integration per NBFC partner (Oxyzo, Rupifi, Yubi). Loan application payload,
+status webhook, disbursement notification.
+11.3 Communication integrations
+Interakt or Wati (WhatsApp Business Cloud API wrappers). Message templates (pre-approved
+by Meta), session messages, interactive buttons, list messages, payment buttons (UPI).
+Webhook for incoming messages.
+Resend API. React Email templates. Transactional only  no marketing emails without explicit
+opt-in. SES as fallback.
+Page 24
+SMS
+MSG91 (best delivery in India). OTP, compliance alerts, payment reminders. DLT registration
+mandatory for commercial SMS in India.
+Sarvam AI
+Saaras v3 (STT):
+0.35/hour of audio. Bulbul v3 (TTS). Sarvam-M (LLM): Hindi business
+language understanding. REST API.
+Page 25
+12. TEAM STRUCTURE PER PHASE
+Who you need, when you need them, and what they build
+12.1 Phase 1 team (months 14)  45 people,
+1416L/month burn
+Co-founder / CTO
+Owns architecture, compliance engine, GSTN integration. Writes all red-zone code.
+Must have Python + Node.js + tax domain knowledge.
+Full-stack engineer
+Owns React frontend, NestJS API, database schema. Uses Cursor aggressively for
+green-zone code. 3+ years TypeScript.
+Compliance engineer / CA
+Practising CA who writes compliance specs, reviews every calculation, builds HSN
+rate database, validates test scenarios.
+Designer / product
+Designs all UI flows in Figma. Generates components with v0. Conducts design
+partner sessions weekly. Owns onboarding experience.
+Sales / customer success
+On-ground in target city. Manages 5 design partners. Reports product gaps weekly.
+Also your first CA channel builder.
+12.2 Phase 2 team (months 510)  1012 people,
+2835L/month burn
++ AI engineer
+Builds LangGraph agent workflows, integrates Sarvam AI, trains demand
+forecasting models. Python + ML experience essential.
++ Backend engineer 2
+Owns inventory module, bank reconciliation, WhatsApp bot backend. Frees CTO
+from feature work.
++ Mobile engineer
+React Native specialist. Offline-first architecture. Builds the daily-use mobile
+experience for finance managers.
++ 3 field sales reps
+One per city (city 1, 2, 3). Local industry knowledge, CA relationships. Reports to
+founder.
++ Customer success
+engineer
+Technical onboarding for enterprise customers. Tally migration support. Handles
+complex CA portal queries.
++ DevOps engineer
+(part-time)
+AWS infrastructure setup, CI/CD pipeline, monitoring dashboards. Can start as
+contract/fractional.
+12.3 Phase 3 team (months 1118)  2530 people,
+6080L/month burn
+Engineering (12 total)
+CTO + 3 backend + 2 frontend + 2 mobile + 1 AI + 1 DevOps + 1 security + 1 QA.
+Dedicated teams per domain.
+Page 26
+Product (3 total)
+VP Product + 2 PMs (one for compliance features, one for growth features like embedded
+credit).
+Compliance (3 total)
+Head of Compliance (senior CA) + 2 compliance engineers. Monitors regulatory changes,
+updates rules engine weekly.
+Sales (10 total)
+VP Sales + 6 field reps across 8+ cities + 2 inside sales for CA channel management.
+Customer Success (4
+total)
+Head CS + 3 CSMs. Each CSM manages 100150 accounts. Focus: reduce churn, drive
+expansion, identify upsell triggers.
+12.4 The non-negotiable first hire
+Your most important first hire is not a developer  it is a practising CA with 5+ years of GST and
+TDS experience who is willing to work as a technical compliance co-founder or senior advisor.
+Every line of compliance logic your CTO writes must be signed off by this person. A software
+engineer who 'read the GST Act' is not a substitute. The cost of one wrong tax calculation at scale
+is a customer-destroying compliance disaster. The CA's salary is the cheapest insurance you will
+ever buy.
+This document was prepared by the Engineering Division, March 2026. Technology choices are recommendations based on current market
+conditions. All compliance rules must be independently verified against official government sources before implementation. This document does
+not constitute legal or tax advice.

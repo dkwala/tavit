@@ -4,6 +4,9 @@ import { seedDeadlines } from './actions'
 import CalendarView from './CalendarView'
 import PenaltyCalculator from './PenaltyCalculator'
 import AlertSettings from './AlertSettings'
+import LiveClock from './LiveClock'
+import DeadlineCountdown from './DeadlineCountdown'
+import AlertActivityPanel from './AlertActivityPanel'
 
 export default async function CompliancePage() {
   const supabase = await createClient()
@@ -93,16 +96,39 @@ export default async function CompliancePage() {
     : '—'
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px' }}>
+    <div style={{ maxWidth: 1220, margin: '0 auto', padding: '32px 24px 48px' }}>
 
       {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 500, color: '#1e2118', letterSpacing: '-0.5px', marginBottom: 6 }}>
-          Compliance Calendar
-        </h1>
-        <p style={{ fontSize: 13, color: '#6b7061' }}>
-          GST return deadlines, penalties, and filing status across all GSTINs.
-        </p>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: 18,
+        flexWrap: 'wrap',
+        marginBottom: 28,
+      }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 7 }}>
+            <h1 style={{ fontSize: 27, fontWeight: 600, color: '#1e2118', letterSpacing: '-0.6px' }}>
+              Compliance Calendar
+            </h1>
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: '#5a7a3a',
+              background: 'rgba(90,122,58,0.09)',
+              border: '0.5px solid rgba(90,122,58,0.2)',
+              borderRadius: 999,
+              padding: '4px 10px',
+            }}>
+              FY 2025-26
+            </span>
+          </div>
+          <p style={{ fontSize: 13, color: '#6b7061' }}>
+            GST return deadlines, penalties, and filing status across all GSTINs.
+          </p>
+        </div>
+        <LiveClock />
       </div>
 
       {/* Summary stats */}
@@ -134,13 +160,28 @@ export default async function CompliancePage() {
       </div>
 
       {/* Main two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) minmax(300px, 340px)',
+        gap: 20,
+        alignItems: 'start',
+      }}>
 
         {/* Left: Calendar list */}
         <CalendarView deadlines={deadlines} />
 
-        {/* Right: Penalty calculator + Alert settings */}
+        {/* Right: countdowns, alerts, and penalty tools */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <DeadlineCountdown deadlines={deadlines} />
+          <AlertActivityPanel
+            deadlines={deadlines}
+            prefs={alertPrefs ? {
+              alertDays:       alertPrefs.alert_days ?? [7, 3, 1],
+              emailEnabled:    alertPrefs.email_enabled,
+              whatsappEnabled: alertPrefs.whatsapp_enabled,
+              whatsappNumber:  alertPrefs.whatsapp_number ?? '',
+            } : null}
+          />
           <PenaltyCalculator />
           <AlertSettings
             companyId={companyId}

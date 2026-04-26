@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { calcPenalty, fmtINR, periodLabel, fyLabel, ANNUAL_RETURNS } from './penalty'
 import { markFiled, markPending } from './actions'
 
@@ -26,6 +26,8 @@ const STATUS_COLORS = {
   pending: { bg: '#eef5e4', text: '#3a6020', border: 'rgba(90,122,58,0.2)' },
   filed:   { bg: '#f0f3ea', text: '#5a7a3a', border: 'rgba(90,122,58,0.15)' },
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 function GstinBadge({ gstin }: { gstin: string }) {
   return (
@@ -108,7 +110,7 @@ function DeadlineRow({ d, onToggle }: { d: Deadline; onToggle: (id: string, file
 
   return (
     <div style={{
-      padding: '14px 16px',
+      padding: '12px 0',
       borderBottom: '0.5px solid #eaecda',
       opacity: isPending ? 0.55 : 1,
       transition: 'opacity 0.15s',
@@ -249,6 +251,33 @@ export default function CalendarView({ deadlines: initial }: { deadlines: Deadli
       return a.dueDate.localeCompare(b.dueDate)
     })
 
+  const grouped = useMemo(() => {
+    const monthMap = new Map<string, { key: string; label: string; date: Date; items: Deadline[] }>()
+
+    for (const deadline of filtered) {
+      const due = new Date(deadline.dueDate)
+      const key = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}`
+
+      if (!monthMap.has(key)) {
+        monthMap.set(key, {
+          key,
+          label: `${MONTHS[due.getMonth()]} ${due.getFullYear()}`,
+          date: new Date(due.getFullYear(), due.getMonth(), 1),
+          items: [],
+        })
+      }
+
+      monthMap.get(key)?.items.push(deadline)
+    }
+
+    return Array.from(monthMap.values()).sort((a, b) => {
+      const aHasOpen = a.items.some(item => item.status !== 'filed')
+      const bHasOpen = b.items.some(item => item.status !== 'filed')
+      if (aHasOpen !== bHasOpen) return aHasOpen ? -1 : 1
+      return a.date.getTime() - b.date.getTime()
+    })
+  }, [filtered])
+
   function handleToggle(id: string, filed: boolean) {
     setDeadlines(prev =>
       prev.map(d => {
@@ -272,14 +301,17 @@ export default function CalendarView({ deadlines: initial }: { deadlines: Deadli
   ]
 
   return (
-    <div style={{ background: '#fff', border: '0.5px solid #dde0cc', borderRadius: 12 }}>
+    <div>
       {/* Toolbar */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 16px 0', gap: 12, flexWrap: 'wrap',
+        gap: 12, flexWrap: 'wrap', marginBottom: 16,
       }}>
         {/* Filter tabs */}
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{
+          display: 'flex', gap: 4, background: '#fff',
+          border: '0.5px solid #dde0cc', borderRadius: 8, padding: 4,
+        }}>
           {TABS.map(tab => (
             <button
               key={tab.key}
@@ -323,15 +355,65 @@ export default function CalendarView({ deadlines: initial }: { deadlines: Deadli
         )}
       </div>
 
-      {/* List */}
-      <div style={{ marginTop: 12 }}>
+      {/* Monthly cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+        gap: 14,
+      }}>
         {filtered.length === 0 ? (
-          <div style={{ padding: '40px 24px', textAlign: 'center', color: '#9aa090', fontSize: 13 }}>
+          <div style={{
+            gridColumn: '1 / -1',
+            background: '#fff',
+            border: '0.5px solid #dde0cc',
+            borderRadius: 12,
+            padding: '40px 24px',
+            textAlign: 'center',
+            color: '#9aa090',
+            fontSize: 13,
+          }}>
             No {filter === 'all' ? '' : filter} returns found.
           </div>
         ) : (
-          filtered.map(d => (
-            <DeadlineRow key={d.id} d={d} onToggle={handleToggle} />
+          grouped.map(month => (
+            <div
+              key={month.key}
+              style={{
+                background: '#fff',
+                border: '0.5px solid #dde0cc',
+                borderRadius: 12,
+                padding: '16px 18px 4px',
+                boxShadow: '0 1px 2px rgba(30,33,24,0.04)',
+              }}
+            >
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 12,
+                paddingBottom: 10,
+                marginBottom: 2,
+                borderBottom: '1px solid #eaecda',
+              }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#1e2118', letterSpacing: '-0.2px' }}>
+                  {month.label}
+                </div>
+                <span style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: '#5a7a3a',
+                  background: 'rgba(90,122,58,0.09)',
+                  border: '0.5px solid rgba(90,122,58,0.18)',
+                  borderRadius: 5,
+                  padding: '2px 7px',
+                }}>
+                  {month.items.filter(item => item.status !== 'filed').length} open
+                </span>
+              </div>
+              {month.items.map(d => (
+                <DeadlineRow key={d.id} d={d} onToggle={handleToggle} />
+              ))}
+            </div>
           ))
         )}
       </div>

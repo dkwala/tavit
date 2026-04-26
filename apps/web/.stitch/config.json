@@ -1,0 +1,14 @@
+{
+  "apiKey": "${STITCH_API_KEY}",
+  "framework": "next",
+  "frameworkVersion": "16",
+  "react": "19",
+  "styling": "tailwind",
+  "tailwindVersion": "4",
+  "componentsDir": "src/components",
+  "designFile": ".stitch/DESIGN.md",
+  "tsconfig": "tsconfig.json",
+  "pathAlias": "@/*",
+  "typescript": true,
+  "serverComponents": true
+}
