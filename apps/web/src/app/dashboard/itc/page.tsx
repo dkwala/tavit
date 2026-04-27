@@ -101,7 +101,17 @@ export default async function ITCPage({
 
   // ── Reconciliation ────────────────────────────────────────────────────────────
 
-  type B2bRow = NonNullable<typeof b2bRows>[number] & { invoice_no: string; supplier_gstin: string; invoice_date: string; taxable_value: number; igst: number; cgst: number; sgst: number }
+  interface B2bRow {
+    invoice_no: string
+    supplier_gstin: string
+    invoice_date: string
+    taxable_value: number
+    igst: number
+    cgst: number
+    sgst: number
+    cess: number
+    itc_availability: string
+  }
 
   const b2bMap = new Map<string, B2bRow>()
   for (const row of (b2bRows ?? []) as B2bRow[]) {
