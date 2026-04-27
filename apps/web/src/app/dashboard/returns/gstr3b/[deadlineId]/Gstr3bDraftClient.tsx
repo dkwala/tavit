@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { markFiled } from '@/app/dashboard/compliance/actions'
 
 type TaxComp = { igst: string; cgst: string; sgst: string; cess: string }
 type PayRow = { tax_payable: string; tax_paid_through_itc: string; tax_paid_in_cash: string; late_fee: string }
@@ -399,6 +400,7 @@ export function Gstr3bDraftClient({ draft, deadlineId, gstinLabel, periodLabel, 
   })
   const [toasts, setToasts] = useState<Toast[]>([])
   const [lastSaved, setLastSaved] = useState<string | null>(null)
+  const [filing, startFilingTransition] = useTransition()
 
   useEffect(() => {
     try { localStorage.setItem(storageKey, JSON.stringify(overrides)) } catch {}
@@ -488,7 +490,18 @@ export function Gstr3bDraftClient({ draft, deadlineId, gstinLabel, periodLabel, 
         </div>
         <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
           <button onClick={handlePdf} style={BTN_GHOST}>↓ Export PDF</button>
-          <button onClick={handleSave} style={BTN_PRIMARY}>Save Draft</button>
+          <button onClick={handleSave} style={BTN_GHOST}>Save Draft</button>
+          <button
+            disabled={filing}
+            onClick={() => startFilingTransition(async () => {
+              await markFiled(deadlineId)
+              addToast('Return marked as filed')
+              router.push('/dashboard/returns')
+            })}
+            style={BTN_PRIMARY}
+          >
+            {filing ? 'Filing…' : 'Mark as Filed'}
+          </button>
         </div>
       </div>
 

@@ -56,6 +56,17 @@ const NAV = [
     ),
   },
   {
+    label: 'TDS',
+    href: '/dashboard/tds',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <rect x="1" y="4" width="13" height="9" rx="1" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M5 4V3a2 2 0 014 0v1" stroke="currentColor" strokeWidth="1.2"/>
+        <path d="M7.5 8v2M6 9h3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
+  {
     label: 'Settings',
     href: '/dashboard/settings',
     icon: (

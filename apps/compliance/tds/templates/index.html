@@ -1,0 +1,1766 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TDS Engine 2025-26 | CA-Compliant Tax Deduction System</title>
+    <style>
+      :root {
+        --primary: #1a56db;
+        --primary-dark: #1e429f;
+        --secondary: #047857;
+        --danger: #dc2626;
+        --warning: #d97706;
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --text: #111827;
+        --text-muted: #6b7280;
+        --border: #e5e7eb;
+        --success-bg: #d1fae5;
+        --success-text: #065f46;
+        --info-bg: #dbeafe;
+        --info-text: #1e40af;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .header {
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        color: white;
+        padding: 1.5rem 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+      .header h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+      .header p {
+        opacity: 0.9;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+      }
+      .header .badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .grid {
+        display: grid;
+        gap: 1.5rem;
+      }
+      .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      }
+      .grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      }
+      .card {
+        background: var(--card);
+        border-radius: 0.75rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--border);
+      }
+      .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+      }
+      .form-group {
+        margin-bottom: 1rem;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.375rem;
+      }
+      .form-control {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.9375rem;
+        transition: all 0.2s;
+      }
+      .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+      }
+      select.form-control {
+        cursor: pointer;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+      .btn-primary:hover {
+        background: var(--primary-dark);
+      }
+      .btn-success {
+        background: var(--secondary);
+        color: white;
+      }
+      .btn-success:hover {
+        background: #065f46;
+      }
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+      }
+      .btn-danger:hover {
+        background: #b91c1c;
+      }
+      .btn-warning {
+        background: var(--warning);
+        color: white;
+      }
+      .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+      }
+      .alert {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+      }
+      .alert-success {
+        background: var(--success-bg);
+        color: var(--success-text);
+        border: 1px solid #a7f3d0;
+      }
+      .alert-info {
+        background: var(--info-bg);
+        color: var(--info-text);
+        border: 1px solid #bfdbfe;
+      }
+      .table-container {
+        overflow-x: auto;
+        margin-top: 1rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+      }
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        background: #f9fafb;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+      }
+      tr:hover {
+        background: #f9fafb;
+      }
+      .amount {
+        font-family: "Courier New", monospace;
+        font-weight: 600;
+      }
+      .amount-positive {
+        color: var(--secondary);
+      }
+      .amount-negative {
+        color: var(--danger);
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .badge-success {
+        background: var(--success-bg);
+        color: var(--success-text);
+      }
+      .badge-info {
+        background: var(--info-bg);
+        color: var(--info-text);
+      }
+      .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .result-box {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        border: 2px solid #86efac;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-top: 1rem;
+      }
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .result-item {
+        text-align: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      .result-item .label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .result-item .value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 0.25rem;
+      }
+      .result-item .value.total {
+        color: var(--primary);
+        font-size: 1.5rem;
+      }
+      .nav-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 0;
+      }
+      .nav-tab {
+        padding: 0.75rem 1.25rem;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+      }
+      .nav-tab:hover {
+        color: var(--primary);
+      }
+      .nav-tab.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .threshold-bar {
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+      }
+      .threshold-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--secondary), #34d399);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+      }
+      .threshold-fill.danger {
+        background: linear-gradient(90deg, var(--danger), #f87171);
+      }
+      .remarks-list {
+        list-style: none;
+        margin-top: 0.75rem;
+      }
+      .remarks-list li {
+        padding: 0.375rem 0;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        border-bottom: 1px dotted var(--border);
+      }
+      .remarks-list li:last-child {
+        border-bottom: none;
+      }
+      .challan-preview {
+        background: #fafafa;
+        border: 1px dashed var(--border);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        font-family: "Courier New", monospace;
+        font-size: 0.875rem;
+        white-space: pre-wrap;
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+      .stat-card {
+        background: var(--card);
+        padding: 1.25rem;
+        border-radius: 0.75rem;
+        border-left: 4px solid var(--primary);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .stat-card.green {
+        border-left-color: var(--secondary);
+      }
+      .stat-card.red {
+        border-left-color: var(--danger);
+      }
+      .stat-card.orange {
+        border-left-color: var(--warning);
+      }
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 0.25rem;
+      }
+      .hidden {
+        display: none !important;
+      }
+      @media (max-width: 768px) {
+        .grid-2,
+        .grid-3,
+        .grid-4 {
+          grid-template-columns: 1fr;
+        }
+        .container {
+          padding: 1rem;
+        }
+        .header {
+          padding: 1rem;
+        }
+      }
+    </style>
+    <base target="_blank" />
+  </head>
+  <body>
+    <div class="header">
+      <h1>TDS Engine 2025-26</h1>
+      <p>
+        CA-Compliant Tax Deduction at Source System | FY 2025-26 | AY 2026-27
+      </p>
+      <span class="badge">Sections 194C | 194J | 194I | 194H</span>
+    </div>
+    <div class="container">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card green">
+          <div class="stat-label">Total Deductees</div>
+          <div class="stat-value" id="statDeductees">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Payments</div>
+          <div class="stat-value" id="statPayments">0</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-label">Total TDS Deducted</div>
+          <div class="stat-value" id="statTDS">Rs.0</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-label">Challans Generated</div>
+          <div class="stat-value" id="statChallans">0</div>
+        </div>
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('dashboard')">
+          Dashboard
+        </button>
+        <button class="nav-tab" onclick="switchTab('deductees')">
+          Deductees
+        </button>
+        <button class="nav-tab" onclick="switchTab('calculate')">
+          Calculate TDS
+        </button>
+        <button class="nav-tab" onclick="switchTab('payments')">
+          Payments
+        </button>
+        <button class="nav-tab" onclick="switchTab('challan')">Challan</button>
+        <button class="nav-tab" onclick="switchTab('rates')">Tax Rates</button>
+      </div>
+
+      <!-- Dashboard Tab -->
+      <div id="tab-dashboard" class="tab-content active">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Threshold Monitoring</span>
+              <span class="badge badge-info">Live</span>
+            </div>
+            <div id="thresholdMonitor">
+              <p
+                style="
+                  color: var(--text-muted);
+                  text-align: center;
+                  padding: 2rem;
+                "
+              >
+                Add deductees and process payments to see threshold tracking
+              </p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Recent Activity</span>
+            </div>
+            <div id="recentActivity">
+              <p
+                style="
+                  color: var(--text-muted);
+                  text-align: center;
+                  padding: 2rem;
+                "
+              >
+                No recent activity
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 1.5rem">
+          <div class="card-header">
+            <span class="card-title">Section-wise Summary</span>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Section</th>
+                  <th>Description</th>
+                  <th>Threshold</th>
+                  <th>Rate</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>194C</strong></td>
+                  <td>Contractors/Sub-contractors</td>
+                  <td>Rs.30,000 / Rs.1,00,000</td>
+                  <td>1% / 2%</td>
+                  <td><span class="badge badge-success">Active</span></td>
+                </tr>
+                <tr>
+                  <td><strong>194J</strong></td>
+                  <td>Professional/Technical Services</td>
+                  <td>Rs.50,000 (per txn)</td>
+                  <td>2% / 10%</td>
+                  <td><span class="badge badge-success">Active</span></td>
+                </tr>
+                <tr>
+                  <td><strong>194I</strong></td>
+                  <td>Rent</td>
+                  <td>Rs.6,00,000 (p.a.)</td>
+                  <td>2% / 10%</td>
+                  <td><span class="badge badge-success">Active</span></td>
+                </tr>
+                <tr>
+                  <td><strong>194H</strong></td>
+                  <td>Commission/Brokerage</td>
+                  <td>Rs.20,000 (p.a.)</td>
+                  <td>2%</td>
+                  <td><span class="badge badge-success">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deductees Tab -->
+      <div id="tab-deductees" class="tab-content">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Add New Deductee</span>
+            </div>
+            <form id="deducteeForm" onsubmit="addDeductee(event)">
+              <div class="form-group">
+                <label>PAN Number *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="dPan"
+                  placeholder="ABCDE1234F"
+                  maxlength="10"
+                  required
+                  pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}"
+                />
+              </div>
+              <div class="form-group">
+                <label>Name *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="dName"
+                  placeholder="Full Name"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Category *</label>
+                <select class="form-control" id="dCategory" required>
+                  <option value="resident_individual">
+                    Resident Individual
+                  </option>
+                  <option value="resident_huf">Resident HUF</option>
+                  <option value="resident_company_domestic">
+                    Resident Domestic Company
+                  </option>
+                  <option value="resident_company_foreign">
+                    Resident Foreign Company
+                  </option>
+                  <option value="resident_firm">Resident Firm/LLP</option>
+                  <option value="nri_individual">
+                    Non-Resident Individual
+                  </option>
+                  <option value="nri_company">Non-Resident Company</option>
+                  <option value="nri_other">Non-Resident Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label
+                  ><input type="checkbox" id="dPanAvailable" checked /> PAN
+                  Available</label
+                >
+              </div>
+              <div class="form-group" id="incomeGroup">
+                <label
+                  >Estimated Total Income (Rs.)
+                  <span title="For surcharge calculation">[?]</span></label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="dIncome"
+                  placeholder="0"
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label
+                  ><input type="checkbox" id="dTransporter" /> Transporter u/s
+                  44AE (with PAN)</label
+                >
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Add Deductee
+              </button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Deductee List</span>
+              <button
+                class="btn btn-sm btn-danger"
+                onclick="clearAllDeductees()"
+              >
+                Clear All
+              </button>
+            </div>
+            <div class="table-container">
+              <table id="deducteesTable">
+                <thead>
+                  <tr>
+                    <th>PAN</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>PAN?</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculate Tab -->
+      <div id="tab-calculate" class="tab-content">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Payment Details</span>
+            </div>
+            <form id="paymentForm" onsubmit="calculateTDS(event)">
+              <div class="form-group">
+                <label>Select Deductee *</label>
+                <select class="form-control" id="pDeductee" required>
+                  <option value="">-- Select Deductee --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Section *</label>
+                <select
+                  class="form-control"
+                  id="pSection"
+                  required
+                  onchange="updateNatureOptions()"
+                >
+                  <option value="">-- Select Section --</option>
+                  <option value="194C">194C - Contractors</option>
+                  <option value="194J">194J - Professional/Technical</option>
+                  <option value="194I">194I - Rent</option>
+                  <option value="194H">194H - Commission</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Nature of Payment *</label>
+                <select class="form-control" id="pNature" required>
+                  <option value="">-- Select Nature --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Amount (Rs.) *</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="pAmount"
+                  placeholder="0.00"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Payment Date *</label>
+                <input type="date" class="form-control" id="pDate" required />
+              </div>
+              <div class="form-group">
+                <label>Financial Year</label>
+                <select class="form-control" id="pFY">
+                  <option value="2025">2025-26</option>
+                  <option value="2026">2026-27</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-success" style="width: 100%">
+                Calculate TDS
+              </button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Calculation Result</span>
+            </div>
+            <div id="calcResult">
+              <p
+                style="
+                  color: var(--text-muted);
+                  text-align: center;
+                  padding: 3rem;
+                "
+              >
+                Enter payment details and click Calculate to see results
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payments Tab -->
+      <div id="tab-payments" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">All Payments</span>
+            <button class="btn btn-sm btn-danger" onclick="clearPayments()">
+              Clear All
+            </button>
+          </div>
+          <div class="table-container">
+            <table id="paymentsTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>PAN</th>
+                  <th>Section</th>
+                  <th>Amount</th>
+                  <th>TDS Rate</th>
+                  <th>TDS</th>
+                  <th>SC</th>
+                  <th>Cess</th>
+                  <th>Total</th>
+                  <th>Net</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Challan Tab -->
+      <div id="tab-challan" class="tab-content">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Generate Challan (ITNS 281)</span>
+            </div>
+            <form id="challanForm" onsubmit="generateChallan(event)">
+              <div class="form-group">
+                <label>Deductor Name *</label>
+                <input type="text" class="form-control" id="cName" required />
+              </div>
+              <div class="form-group">
+                <label>Deductor PAN *</label>
+                <input type="text" class="form-control" id="cPan" required />
+              </div>
+              <div class="form-group">
+                <label>Deductor TAN *</label>
+                <input type="text" class="form-control" id="cTan" required />
+              </div>
+              <div class="form-group">
+                <label>Assessment Year *</label>
+                <select class="form-control" id="cAY" required>
+                  <option value="2026-27">2026-27</option>
+                  <option value="2025-26">2025-26</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Minor Head *</label>
+                <select class="form-control" id="cMinorHead" required>
+                  <option value="200">200 - TDS Payable by Taxpayer</option>
+                  <option value="400">400 - TDS Regular Assessment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Nature of Payment *</label>
+                <select class="form-control" id="cNature" required>
+                  <option value="92C">92C - Non-Company Deductee</option>
+                  <option value="92B">92B - Company Deductee</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Interest u/s 220(2) / 234 (Rs.)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="cInterest"
+                  value="0"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div class="form-group">
+                <label>Penalty (Rs.)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="cPenalty"
+                  value="0"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div class="form-group">
+                <label>Late Filing Fee u/s 234E (Rs.)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="cFee"
+                  value="0"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%">
+                Generate Challan
+              </button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Challan Preview</span>
+            </div>
+            <div id="challanPreview">
+              <p
+                style="
+                  color: var(--text-muted);
+                  text-align: center;
+                  padding: 3rem;
+                "
+              >
+                Generate a challan to see preview
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 1.5rem">
+          <div class="card-header">
+            <span class="card-title">Generated Challans</span>
+          </div>
+          <div class="table-container">
+            <table id="challansTable">
+              <thead>
+                <tr>
+                  <th>Challan ID</th>
+                  <th>Deductor</th>
+                  <th>A.Y.</th>
+                  <th>Total Tax</th>
+                  <th>Total</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rates Tab -->
+      <div id="tab-rates" class="tab-content">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">TDS Rates FY 2025-26</span>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Section</th>
+                    <th>Nature</th>
+                    <th>Threshold</th>
+                    <th>Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td rowspan="2"><strong>194C</strong></td>
+                    <td>Individual/HUF</td>
+                    <td rowspan="2">Rs.30,000/txn<br />Rs.1,00,000/yr</td>
+                    <td>1%</td>
+                  </tr>
+                  <tr>
+                    <td>Others</td>
+                    <td>2%</td>
+                  </tr>
+                  <tr>
+                    <td rowspan="2"><strong>194J</strong></td>
+                    <td>Technical/Royalty/Call Centre</td>
+                    <td rowspan="2">Rs.50,000/txn</td>
+                    <td>2%</td>
+                  </tr>
+                  <tr>
+                    <td>Professional (Others)</td>
+                    <td>10%</td>
+                  </tr>
+                  <tr>
+                    <td rowspan="2"><strong>194I</strong></td>
+                    <td>Plant & Machinery</td>
+                    <td rowspan="2">Rs.6,00,000/yr</td>
+                    <td>2%</td>
+                  </tr>
+                  <tr>
+                    <td>Land/Building/Furniture</td>
+                    <td>10%</td>
+                  </tr>
+                  <tr>
+                    <td><strong>194H</strong></td>
+                    <td>Commission/Brokerage</td>
+                    <td>Rs.20,000/yr</td>
+                    <td>2%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Surcharge & Cess</span>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Component</th>
+                    <th>Rate</th>
+                    <th>Applicability</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Health & Education Cess</td>
+                    <td>4%</td>
+                    <td>All deductees</td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" style="background: #f9fafb">
+                      <strong>Surcharge - NRI Individual</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Income &lt;= Rs.50L</td>
+                    <td>0%</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>Rs.50L - Rs.1Cr</td>
+                    <td>10%</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>Rs.1Cr - Rs.2Cr</td>
+                    <td>15%</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>Rs.2Cr - Rs.5Cr</td>
+                    <td>25%</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>&gt; Rs.5Cr</td>
+                    <td>37%</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td colspan="3" style="background: #f9fafb">
+                      <strong>Surcharge - Foreign Company</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Income &lt;= Rs.1Cr</td>
+                    <td>0%</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>Rs.1Cr - Rs.10Cr</td>
+                    <td>2%</td>
+                    <td>-</td>
+                  </tr>
+                  <tr>
+                    <td>&gt; Rs.10Cr</td>
+                    <td>5%</td>
+                    <td>-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-info" style="margin-top: 1.5rem">
+          <strong>Note:</strong> Surcharge is generally not applicable for
+          Resident deductees under Sections 194C, 194J, 194I, and 194H. PAN not
+          available attracts 20% TDS u/s 206AA. Transporters with 44AE
+          declaration and valid PAN are exempt from 194C TDS.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // =====================
+      // STATE MANAGEMENT
+      // =====================
+      let deductees = JSON.parse(localStorage.getItem("tds_deductees") || "[]");
+      let payments = JSON.parse(localStorage.getItem("tds_payments") || "[]");
+      let challans = JSON.parse(localStorage.getItem("tds_challans") || "[]");
+      let aggregates = JSON.parse(
+        localStorage.getItem("tds_aggregates") || "{}",
+      );
+
+      function formatCurrency(amount) {
+        return (
+          "Rs." +
+          parseFloat(amount).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
+      }
+      function formatDate(dateStr) {
+        if (!dateStr) return "-";
+        return new Date(dateStr).toLocaleDateString("en-IN");
+      }
+      function generateId() {
+        return Math.random().toString(36).substring(2, 10).toUpperCase();
+      }
+      function saveData() {
+        localStorage.setItem("tds_deductees", JSON.stringify(deductees));
+        localStorage.setItem("tds_payments", JSON.stringify(payments));
+        localStorage.setItem("tds_challans", JSON.stringify(challans));
+        localStorage.setItem("tds_aggregates", JSON.stringify(aggregates));
+      }
+
+      // =====================
+      // TAB NAVIGATION
+      // =====================
+      function switchTab(tabId) {
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-tab")
+          .forEach((t) => t.classList.remove("active"));
+        document.getElementById("tab-" + tabId).classList.add("active");
+        event.target.classList.add("active");
+        if (tabId === "dashboard") updateDashboard();
+        if (tabId === "deductees") renderDeductees();
+        if (tabId === "calculate") updateDeducteeSelect();
+        if (tabId === "payments") renderPayments();
+        if (tabId === "challan") renderChallans();
+      }
+
+      // =====================
+      // DEDUCTEE MANAGEMENT
+      // =====================
+      function addDeductee(e) {
+        e.preventDefault();
+        const pan = document.getElementById("dPan").value.toUpperCase().trim();
+        const name = document.getElementById("dName").value.trim();
+        const category = document.getElementById("dCategory").value;
+        const isPanAvailable = document.getElementById("dPanAvailable").checked;
+        const income =
+          parseFloat(document.getElementById("dIncome").value) || 0;
+        const isTransporter = document.getElementById("dTransporter").checked;
+
+        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+        if (!panRegex.test(pan)) {
+          alert("Invalid PAN format. Must be ABCDE1234F");
+          return;
+        }
+        if (deductees.find((d) => d.pan === pan)) {
+          alert("Deductee with this PAN already exists");
+          return;
+        }
+
+        deductees.push({
+          pan,
+          name,
+          category,
+          isPanAvailable,
+          estimated_total_income: income,
+          is_transporter_44ae: isTransporter,
+          created_at: new Date().toISOString(),
+        });
+        saveData();
+        document.getElementById("deducteeForm").reset();
+        renderDeductees();
+        updateStats();
+        alert("Deductee added successfully!");
+      }
+
+      function renderDeductees() {
+        const tbody = document.querySelector("#deducteesTable tbody");
+        if (deductees.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No deductees added</td></tr>';
+          return;
+        }
+        tbody.innerHTML = deductees
+          .map(
+            (d) => `
+                <tr>
+                    <td><strong>${d.pan}</strong></td>
+                    <td>${d.name}</td>
+                    <td><span class="badge badge-info">${d.category.replace(/_/g, " ")}</span></td>
+                    <td>${d.isPanAvailable ? "Yes" : "No"}</td>
+                    <td><button class="btn btn-sm btn-danger" onclick="deleteDeductee('${d.pan}')">Delete</button></td>
+                </tr>
+            `,
+          )
+          .join("");
+      }
+
+      function deleteDeductee(pan) {
+        if (
+          !confirm(
+            "Delete this deductee? All associated payments will be lost.",
+          )
+        )
+          return;
+        deductees = deductees.filter((d) => d.pan !== pan);
+        payments = payments.filter((p) => p.deductee_pan !== pan);
+        delete aggregates[pan];
+        saveData();
+        renderDeductees();
+        updateStats();
+      }
+
+      function clearAllDeductees() {
+        if (
+          !confirm("Clear ALL deductees and payments? This cannot be undone.")
+        )
+          return;
+        deductees = [];
+        payments = [];
+        aggregates = {};
+        saveData();
+        renderDeductees();
+        updateStats();
+      }
+
+      function updateDeducteeSelect() {
+        const select = document.getElementById("pDeductee");
+        select.innerHTML =
+          '<option value="">-- Select Deductee --</option>' +
+          deductees
+            .map(
+              (d) => `<option value="${d.pan}">${d.name} (${d.pan})</option>`,
+            )
+            .join("");
+      }
+
+      // =====================
+      // NATURE OF PAYMENT
+      // =====================
+      const natureOptions = {
+        "194C": {
+          contractor: "Contractor (General)",
+          sub_contractor: "Sub-Contractor",
+          advertising: "Advertising Contract",
+          broadcasting: "Broadcasting/Telecasting",
+          carriage_goods: "Carriage of Goods (Transporter)",
+          carriage_passengers: "Carriage of Passengers",
+        },
+        "194J": {
+          technical_services: "Technical Services (incl. Call Centre, Films)",
+          royalty: "Royalty",
+          professional_services: "Professional Services (Others)",
+          director_fees: "Director Fees",
+        },
+        "194I": {
+          plant_machinery: "Plant & Machinery",
+          land_building: "Land/Building/Furniture/Fittings",
+        },
+        "194H": { default: "Commission/Brokerage" },
+      };
+
+      function updateNatureOptions() {
+        const section = document.getElementById("pSection").value;
+        const select = document.getElementById("pNature");
+        const options = natureOptions[section] || {};
+        select.innerHTML =
+          '<option value="">-- Select Nature --</option>' +
+          Object.entries(options)
+            .map(([k, v]) => `<option value="${k}">${v}</option>`)
+            .join("");
+      }
+
+      // =====================
+      // TDS CALCULATION ENGINE
+      // =====================
+      const TDS_CONFIG = {
+        "194C": {
+          threshold_single: 30000,
+          threshold_aggregate: 100000,
+          rates: { individual_huf: 0.01, others: 0.02, no_pan: 0.2 },
+        },
+        "194J": {
+          threshold_single: 50000,
+          threshold_aggregate: null,
+          rates: { technical: 0.02, professional: 0.1, no_pan: 0.2 },
+        },
+        "194I": {
+          threshold_single: null,
+          threshold_aggregate: 600000,
+          rates: { plant: 0.02, land: 0.1, no_pan: 0.2 },
+        },
+        "194H": {
+          threshold_single: null,
+          threshold_aggregate: 20000,
+          rates: { default: 0.02, no_pan: 0.2 },
+        },
+      };
+
+      const SURCHARGE_SLABS_NRI = [
+        [0, 5000000, 0],
+        [5000000, 10000000, 0.1],
+        [10000000, 20000000, 0.15],
+        [20000000, 50000000, 0.25],
+        [50000000, Infinity, 0.37],
+      ];
+
+      function calculateTDS(e) {
+        e.preventDefault();
+        const pan = document.getElementById("pDeductee").value;
+        const section = document.getElementById("pSection").value;
+        const nature = document.getElementById("pNature").value;
+        const amount =
+          parseFloat(document.getElementById("pAmount").value) || 0;
+        const date = document.getElementById("pDate").value;
+        const fy = parseInt(document.getElementById("pFY").value);
+
+        if (!pan || !section || !nature || amount <= 0 || !date) {
+          alert("Please fill all required fields");
+          return;
+        }
+
+        const deductee = deductees.find((d) => d.pan === pan);
+        if (!deductee) {
+          alert("Deductee not found");
+          return;
+        }
+
+        const key = `${fy}_${section}`;
+        const aggregateBefore = (aggregates[pan] && aggregates[pan][key]) || 0;
+        const config = TDS_CONFIG[section];
+        let rate = 0,
+          shouldDeduct = false,
+          thresholdType = "none",
+          taxableAmount = 0,
+          remarks = [];
+
+        if (!deductee.isPanAvailable) {
+          rate = 0.2;
+          shouldDeduct = true;
+          taxableAmount = amount;
+          thresholdType = "pan_not_available";
+          remarks.push("PAN not available. Applied 20% rate u/s 206AA");
+        } else {
+          if (section === "194C") {
+            if (deductee.is_transporter_44ae) {
+              rate = 0;
+              shouldDeduct = false;
+              remarks.push("Transporter with 44AE declaration - NIL TDS");
+            } else if (
+              deductee.category === "resident_individual" ||
+              deductee.category === "resident_huf" ||
+              deductee.category === "nri_individual"
+            ) {
+              rate = config.rates.individual_huf;
+              remarks.push("Applied 1% rate (Individual/HUF) u/s 194C");
+            } else {
+              rate = config.rates.others;
+              remarks.push("Applied 2% rate (Others) u/s 194C");
+            }
+          } else if (section === "194J") {
+            if (["technical_services", "royalty", "call_centre", "films"].includes(nature)) {
+              rate = config.rates.technical;
+              remarks.push("Applied 2% rate (Technical/Royalty/Call Centre/Films) u/s 194J(a)");
+            } else {
+              rate = config.rates.professional;
+              remarks.push("Applied 10% rate (Professional) u/s 194J(b)");
+            }
+          } else if (section === "194I") {
+            if (nature === "plant_machinery") {
+              rate = config.rates.plant;
+              remarks.push("Applied 2% rate (Plant & Machinery) u/s 194I(a)");
+            } else {
+              rate = config.rates.land;
+              remarks.push("Applied 10% rate (Land/Building) u/s 194I(b)");
+            }
+          } else if (section === "194H") {
+            rate = config.rates.default;
+            remarks.push("Applied 2% rate u/s 194H");
+          }
+
+          const crossesSingle =
+            config.threshold_single && amount > config.threshold_single;
+          const aggregateAfter = aggregateBefore + amount;
+          const crossesAggregate =
+            config.threshold_aggregate &&
+            aggregateBefore < config.threshold_aggregate &&
+            aggregateAfter >= config.threshold_aggregate;
+          const alreadyCrossed =
+            config.threshold_aggregate &&
+            aggregateBefore >= config.threshold_aggregate;
+
+          if (section === "194C") {
+            if (crossesSingle) {
+              shouldDeduct = true;
+              thresholdType =
+                alreadyCrossed || crossesAggregate ? "both" : "single";
+              taxableAmount = amount;
+              remarks.push(
+                `Single transaction Rs.${amount.toLocaleString()} exceeds Rs.${config.threshold_single.toLocaleString()}`,
+              );
+            } else if (crossesAggregate) {
+              shouldDeduct = true;
+              thresholdType = "aggregate";
+              taxableAmount = amount;
+              remarks.push(
+                `Aggregate Rs.${aggregateAfter.toLocaleString()} crosses Rs.${config.threshold_aggregate.toLocaleString()}`,
+              );
+            } else if (alreadyCrossed) {
+              shouldDeduct = true;
+              thresholdType = "aggregate";
+              taxableAmount = amount;
+              remarks.push(
+                `Aggregate already exceeded Rs.${config.threshold_aggregate.toLocaleString()}`,
+              );
+            } else {
+              shouldDeduct = false;
+              remarks.push(
+                `Below threshold (Single <= Rs.${config.threshold_single.toLocaleString()}, Aggregate <= Rs.${config.threshold_aggregate.toLocaleString()})`,
+              );
+            }
+          } else if (section === "194J") {
+            if (crossesSingle) {
+              shouldDeduct = true;
+              thresholdType = "single";
+              taxableAmount = amount;
+              remarks.push(
+                `Single transaction Rs.${amount.toLocaleString()} exceeds Rs.${config.threshold_single.toLocaleString()}`,
+              );
+            } else {
+              shouldDeduct = false;
+              remarks.push(
+                `Below threshold (Single <= Rs.${config.threshold_single.toLocaleString()})`,
+              );
+            }
+          } else if (section === "194I" || section === "194H") {
+            if (crossesAggregate) {
+              shouldDeduct = true;
+              thresholdType = "aggregate";
+              taxableAmount = amount;
+              remarks.push(
+                `Aggregate Rs.${aggregateAfter.toLocaleString()} crosses Rs.${config.threshold_aggregate.toLocaleString()}`,
+              );
+            } else if (alreadyCrossed) {
+              shouldDeduct = true;
+              thresholdType = "aggregate";
+              taxableAmount = amount;
+              remarks.push(
+                `Aggregate already exceeded Rs.${config.threshold_aggregate.toLocaleString()}`,
+              );
+            } else {
+              shouldDeduct = false;
+              remarks.push(
+                `Below threshold (Aggregate <= Rs.${config.threshold_aggregate.toLocaleString()})`,
+              );
+            }
+          }
+        }
+
+        let tdsAmount = 0,
+          surchargeRate = 0,
+          surchargeAmount = 0,
+          cessRate = 0.04,
+          cessAmount = 0,
+          totalTDS = 0,
+          netPayment = amount;
+
+        if (shouldDeduct && rate > 0) {
+          tdsAmount = taxableAmount * rate;
+          if (
+            deductee.category.startsWith("nri") &&
+            deductee.estimated_total_income > 0
+          ) {
+            const income = deductee.estimated_total_income;
+            for (const [low, high, sr] of SURCHARGE_SLABS_NRI) {
+              if (income >= low && income < high) {
+                surchargeRate = sr;
+                break;
+              }
+            }
+            if (surchargeRate > 0) {
+              surchargeAmount = tdsAmount * surchargeRate;
+              remarks.push(
+                `Surcharge @ ${(surchargeRate * 100).toFixed(0)}% applied (NRI, Income Rs.${income.toLocaleString()})`,
+              );
+            }
+          }
+          cessAmount = (tdsAmount + surchargeAmount) * cessRate;
+          remarks.push("Health & Education Cess @ 4% on (TDS + Surcharge)");
+          totalTDS = tdsAmount + surchargeAmount + cessAmount;
+          netPayment = amount - totalTDS;
+        }
+
+        if (!aggregates[pan]) aggregates[pan] = {};
+        aggregates[pan][key] = aggregateBefore + amount;
+
+        const payment = {
+          payment_id: generateId(),
+          deductee_pan: pan,
+          deductee_name: deductee.name,
+          section,
+          nature_of_payment: nature,
+          gross_amount: amount,
+          taxable_amount: taxableAmount,
+          tds_rate: rate,
+          tds_amount: tdsAmount,
+          surcharge_rate: surchargeRate,
+          surcharge_amount: surchargeAmount,
+          cess_rate: cessRate,
+          cess_amount: cessAmount,
+          total_tds: totalTDS,
+          net_payment: netPayment,
+          threshold_applied: shouldDeduct,
+          threshold_type: thresholdType,
+          aggregate_before: aggregateBefore,
+          aggregate_after: aggregateBefore + amount,
+          payment_date: date,
+          fy_year: fy,
+          remarks,
+          created_at: new Date().toISOString(),
+        };
+
+        payments.push(payment);
+        saveData();
+        displayResult(payment);
+        updateStats();
+        updateDashboard();
+      }
+
+      function displayResult(payment) {
+        const div = document.getElementById("calcResult");
+        const statusClass = payment.threshold_applied
+          ? "badge-success"
+          : "badge-warning";
+        const statusText = payment.threshold_applied
+          ? "TDS Deducted"
+          : "No TDS";
+
+        div.innerHTML = `
+                <div class="alert ${payment.threshold_applied ? "alert-success" : "alert-info"}">
+                    <strong>Status:</strong> <span class="badge ${statusClass}">${statusText}</span>
+                    ${payment.threshold_applied ? "" : "<br>Payment is below applicable threshold limits"}
+                </div>
+                <div class="result-grid">
+                    <div class="result-item"><div class="label">Gross Amount</div><div class="value">${formatCurrency(payment.gross_amount)}</div></div>
+                    <div class="result-item"><div class="label">Taxable Amount</div><div class="value">${formatCurrency(payment.taxable_amount)}</div></div>
+                    <div class="result-item"><div class="label">TDS Rate</div><div class="value">${(payment.tds_rate * 100).toFixed(2)}%</div></div>
+                    <div class="result-item"><div class="label">TDS Amount</div><div class="value amount-negative">${formatCurrency(payment.tds_amount)}</div></div>
+                    <div class="result-item"><div class="label">Surcharge</div><div class="value amount-negative">${formatCurrency(payment.surcharge_amount)}</div></div>
+                    <div class="result-item"><div class="label">HEC (4%)</div><div class="value amount-negative">${formatCurrency(payment.cess_amount)}</div></div>
+                    <div class="result-item"><div class="label">Net Payment</div><div class="value amount-positive">${formatCurrency(payment.net_payment)}</div></div>
+                    <div class="result-item"><div class="label">Total TDS</div><div class="value total amount-negative">${formatCurrency(payment.total_tds)}</div></div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <strong>Threshold Tracking:</strong><br>
+                    Aggregate Before: ${formatCurrency(payment.aggregate_before)} -> 
+                    Aggregate After: ${formatCurrency(payment.aggregate_after)}
+                </div>
+                <ul class="remarks-list">
+                    ${payment.remarks.map((r) => `<li>${r}</li>`).join("")}
+                </ul>
+            `;
+      }
+
+      function renderPayments() {
+        const tbody = document.querySelector("#paymentsTable tbody");
+        if (payments.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="11" style="text-align:center;color:var(--text-muted)">No payments calculated</td></tr>';
+          return;
+        }
+        tbody.innerHTML = payments
+          .slice()
+          .reverse()
+          .map((p) => {
+            const statusBadge = p.threshold_applied
+              ? '<span class="badge badge-success">Deducted</span>'
+              : '<span class="badge badge-warning">Exempt</span>';
+            return `<tr>
+                    <td><small>${p.payment_id}</small></td>
+                    <td><strong>${p.deductee_pan}</strong></td>
+                    <td>${p.section}</td>
+                    <td class="amount">${formatCurrency(p.gross_amount)}</td>
+                    <td>${(p.tds_rate * 100).toFixed(2)}%</td>
+                    <td class="amount amount-negative">${formatCurrency(p.tds_amount)}</td>
+                    <td class="amount">${formatCurrency(p.surcharge_amount)}</td>
+                    <td class="amount">${formatCurrency(p.cess_amount)}</td>
+                    <td class="amount amount-negative">${formatCurrency(p.total_tds)}</td>
+                    <td class="amount amount-positive">${formatCurrency(p.net_payment)}</td>
+                    <td>${statusBadge}</td>
+                </tr>`;
+          })
+          .join("");
+      }
+
+      function clearPayments() {
+        if (!confirm("Clear all payments?")) return;
+        payments = [];
+        aggregates = {};
+        saveData();
+        renderPayments();
+        updateStats();
+        updateDashboard();
+      }
+
+      // =====================
+      // CHALLAN
+      // =====================
+      function generateChallan(e) {
+        e.preventDefault();
+        if (payments.length === 0) {
+          alert("No payments available. Calculate TDS first.");
+          return;
+        }
+
+        const name = document.getElementById("cName").value;
+        const pan = document.getElementById("cPan").value;
+        const tan = document.getElementById("cTan").value;
+        const ay = document.getElementById("cAY").value;
+        const minorHead = document.getElementById("cMinorHead").value;
+        const nature = document.getElementById("cNature").value;
+        const interest =
+          parseFloat(document.getElementById("cInterest").value) || 0;
+        const penalty =
+          parseFloat(document.getElementById("cPenalty").value) || 0;
+        const fee = parseFloat(document.getElementById("cFee").value) || 0;
+
+        const sectionTotals = {};
+        for (const p of payments) {
+          if (!p.threshold_applied) continue;
+          if (!sectionTotals[p.section]) {
+            sectionTotals[p.section] = {
+              nature: p.nature_of_payment,
+              amount_paid: 0,
+              tds: 0,
+              surcharge: 0,
+              cess: 0,
+            };
+          }
+          sectionTotals[p.section].amount_paid += p.gross_amount;
+          sectionTotals[p.section].tds += p.tds_amount;
+          sectionTotals[p.section].surcharge += p.surcharge_amount;
+          sectionTotals[p.section].cess += p.cess_amount;
+        }
+
+        const entries = Object.entries(sectionTotals).map(
+          ([section, data]) => ({
+            section,
+            nature_of_payment: data.nature,
+            amount_paid: data.amount_paid,
+            tds_amount: data.tds,
+            surcharge: data.surcharge,
+            cess: data.cess,
+          }),
+        );
+
+        const totalTax = entries.reduce((s, e) => s + e.tds_amount, 0);
+        const totalSC = entries.reduce((s, e) => s + e.surcharge, 0);
+        const totalCess = entries.reduce((s, e) => s + e.cess, 0);
+        const totalAmount =
+          totalTax + totalSC + totalCess + interest + penalty + fee;
+
+        const challan = {
+          challan_id: "CH" + generateId(),
+          deductor_name: name,
+          deductor_pan: pan,
+          deductor_tan: tan,
+          assessment_year: ay,
+          fy_year: "2025-26",
+          minor_head: minorHead,
+          nature_of_payment: nature,
+          entries,
+          total_tax: totalTax,
+          total_surcharge: totalSC,
+          total_cess: totalCess,
+          total_interest: interest,
+          total_penalty: penalty,
+          total_fee: fee,
+          total_amount: totalAmount,
+          payment_date: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        };
+
+        challans.push(challan);
+        saveData();
+        displayChallan(challan);
+        renderChallans();
+        updateStats();
+        alert("Challan generated successfully!");
+      }
+
+      function displayChallan(challan) {
+        const div = document.getElementById("challanPreview");
+        let text = `======================================================\n           CHALLAN NO./ITNS 281\n    Tax Deducted at Source (TDS) Payment\n======================================================\nChallan ID: ${challan.challan_id}\nAssessment Year: ${challan.assessment_year}\nFinancial Year: ${challan.fy_year}\n------------------------------------------------------\nDEDUCTOR DETAILS:\n  Name: ${challan.deductor_name}\n  PAN: ${challan.deductor_pan}\n  TAN: ${challan.deductor_tan}\n------------------------------------------------------\nMinor Head: ${challan.minor_head}\nNature: ${challan.nature_of_payment}\n------------------------------------------------------\nSection    Nature              Amount Paid     TDS        SC      Cess     Total\n------------------------------------------------------\n`;
+
+        for (const e of challan.entries) {
+          text += `${e.section.padEnd(10)} ${e.nature_of_payment.substring(0, 18).padEnd(18)} ${e.amount_paid.toFixed(2).padStart(12)} ${e.tds_amount.toFixed(2).padStart(10)} ${e.surcharge.toFixed(2).padStart(8)} ${e.cess.toFixed(2).padStart(8)} ${(e.tds_amount + e.surcharge + e.cess).toFixed(2).padStart(10)}\n`;
+        }
+
+        text += `------------------------------------------------------\nTOTAL TAX                                    ${challan.total_tax.toFixed(2).padStart(18)}\nTOTAL SURCHARGE                              ${challan.total_surcharge.toFixed(2).padStart(18)}\nTOTAL CESS (4% HEC)                          ${challan.total_cess.toFixed(2).padStart(18)}\nTOTAL INTEREST                               ${challan.total_interest.toFixed(2).padStart(18)}\nTOTAL PENALTY                                ${challan.total_penalty.toFixed(2).padStart(18)}\nTOTAL FEE u/s 234E                           ${challan.total_fee.toFixed(2).padStart(18)}\n======================================================\nGRAND TOTAL                                  ${challan.total_amount.toFixed(2).padStart(18)}\n======================================================\nPayment Date: ${new Date().toLocaleDateString("en-IN")}\nNote: Pay at authorized bank or via e-Payment on TIN-NSDL\n======================================================`;
+
+        div.innerHTML = `<div class="challan-preview">${text}</div>
+                <button class="btn btn-success" style="margin-top: 1rem; width: 100%;" onclick="downloadChallan('${challan.challan_id}')">Download Challan Text</button>`;
+      }
+
+      function renderChallans() {
+        const tbody = document.querySelector("#challansTable tbody");
+        if (challans.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No challans generated</td></tr>';
+          return;
+        }
+        tbody.innerHTML = challans
+          .slice()
+          .reverse()
+          .map(
+            (c) => `
+                <tr>
+                    <td><strong>${c.challan_id}</strong></td>
+                    <td>${c.deductor_name}</td>
+                    <td>${c.assessment_year}</td>
+                    <td class="amount">${formatCurrency(c.total_tax)}</td>
+                    <td class="amount amount-negative">${formatCurrency(c.total_amount)}</td>
+                    <td>${formatDate(c.payment_date)}</td>
+                    <td><button class="btn btn-sm btn-primary" onclick="viewChallan('${c.challan_id}')">View</button></td>
+                </tr>
+            `,
+          )
+          .join("");
+      }
+
+      function viewChallan(id) {
+        const challan = challans.find((c) => c.challan_id === id);
+        if (challan) {
+          displayChallan(challan);
+          switchTab("challan");
+          document.querySelectorAll(".nav-tab")[4].classList.add("active");
+        }
+      }
+
+      function downloadChallan(id) {
+        const challan = challans.find((c) => c.challan_id === id);
+        if (!challan) return;
+        const preview = document.querySelector(".challan-preview");
+        const text = preview ? preview.textContent : "";
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ITNS281_${challan.challan_id}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // =====================
+      // DASHBOARD
+      // =====================
+      function updateDashboard() {
+        const monitor = document.getElementById("thresholdMonitor");
+        if (deductees.length === 0 || payments.length === 0) {
+          monitor.innerHTML =
+            '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Add deductees and process payments to see threshold tracking</p>';
+          document.getElementById("recentActivity").innerHTML =
+            '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No recent activity</p>';
+          return;
+        }
+
+        let html = "";
+        for (const d of deductees) {
+          const pan = d.pan;
+          const fy = 2025;
+          html += `<div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">
+                    <strong>${d.name}</strong> <small style="color: var(--text-muted)">(${pan})</small>`;
+
+          for (const section of ["194C", "194J", "194I", "194H"]) {
+            const key = `${fy}_${section}`;
+            const agg = (aggregates[pan] && aggregates[pan][key]) || 0;
+            const config = TDS_CONFIG[section];
+            const threshold =
+              config.threshold_aggregate || config.threshold_single || 0;
+            const pct =
+              threshold > 0 ? Math.min((agg / threshold) * 100, 100) : 0;
+            const isCrossed = agg > threshold && threshold > 0;
+
+            html += `<div style="margin-top: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                            <span>${section}</span>
+                            <span>${formatCurrency(agg)} / ${formatCurrency(threshold)} 
+                                <span class="badge ${isCrossed ? "badge-danger" : "badge-success"}">${isCrossed ? "Crossed" : "Active"}</span>
+                            </span>
+                        </div>
+                        <div class="threshold-bar"><div class="threshold-fill ${isCrossed ? "danger" : ""}" style="width: ${pct}%"></div></div>
+                    </div>`;
+          }
+          html += "</div>";
+        }
+        monitor.innerHTML = html;
+
+        const recent = document.getElementById("recentActivity");
+        const recentPayments = payments.slice().reverse().slice(0, 5);
+        recent.innerHTML = recentPayments
+          .map(
+            (p) => `
+                <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.875rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span><strong>${p.deductee_name}</strong> - ${p.section}</span>
+                        <span style="color: var(--text-muted)">${formatDate(p.payment_date)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
+                        <span>Gross: ${formatCurrency(p.gross_amount)}</span>
+                        <span class="amount-negative">TDS: ${formatCurrency(p.total_tds)}</span>
+                    </div>
+                </div>
+            `,
+          )
+          .join("");
+      }
+
+      function updateStats() {
+        document.getElementById("statDeductees").textContent = deductees.length;
+        document.getElementById("statPayments").textContent = payments.length;
+        const totalTDS = payments.reduce((s, p) => s + p.total_tds, 0);
+        document.getElementById("statTDS").textContent =
+          formatCurrency(totalTDS);
+        document.getElementById("statChallans").textContent = challans.length;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("pDate").valueAsDate = new Date();
+        updateStats();
+        updateDashboard();
+        renderDeductees();
+        renderPayments();
+        renderChallans();
+      });
+    </script>
+  </body>
+</html>

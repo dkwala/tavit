@@ -147,6 +147,8 @@ export async function markFiled(deadlineId: string, filingDate?: string) {
 
   if (error) return { error: error.message }
   revalidatePath('/dashboard/compliance')
+  revalidatePath('/dashboard/returns')
+  revalidatePath('/dashboard')
   return {}
 }
 

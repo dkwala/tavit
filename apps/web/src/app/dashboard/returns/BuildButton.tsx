@@ -49,7 +49,11 @@ export function BuildButton({ deadlineId, gstinId, periodMonth, periodYear, isRe
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 11, color: '#5a7a3a' }}>{label}</span>
         <button
-          onClick={() => router.push(`/dashboard/returns/gstr3b/${deadlineId}`)}
+          onClick={() => router.push(
+            returnType === 'GSTR-1'
+              ? `/dashboard/returns/gstr1/${deadlineId}`
+              : `/dashboard/returns/gstr3b/${deadlineId}`
+          )}
           style={{
             background: '#1e2118', color: '#9cc47a',
             border: 'none', fontSize: 11, fontWeight: 500,

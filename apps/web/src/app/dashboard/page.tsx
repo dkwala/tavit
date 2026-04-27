@@ -1,6 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+function fmt(n: number) {
+  return n.toLocaleString('en-IN', { maximumFractionDigits: 0 })
+}
+
+function mapStatus(dbStatus: string): 'upcoming' | 'due' | 'done' {
+  if (dbStatus === 'filed') return 'done'
+  if (dbStatus === 'overdue') return 'due'
+  return 'upcoming'
+}
+
 function StatCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent?: boolean }) {
   return (
     <div style={{
@@ -62,10 +74,10 @@ export default async function DashboardPage() {
 
   if (!member) redirect('/onboarding')
 
-  // Fetch the primary active GSTIN for the company
+  // Fetch the primary active GSTIN for the company (include id for subsequent queries)
   const { data: primaryGstin } = await supabase
     .from('gstins')
-    .select('gstin, trade_name')
+    .select('id, gstin, trade_name')
     .eq('company_id', member.company_id)
     .eq('status', 'active')
     .limit(1)
@@ -74,9 +86,84 @@ export default async function DashboardPage() {
   const company     = member.company as unknown as { name: string; pan: string; state_code: string } | null
   const companyName = company?.name ?? 'your company'
   const gstinLabel  = primaryGstin?.gstin ?? '—'
+  const gstinId     = primaryGstin?.id ?? ''
 
   const hour     = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  // ── Stats queries ─────────────────────────────────────────────────────────
+
+  // Current Indian FY: April 1 – March 31
+  const today = new Date()
+  const fyYear = today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1
+
+  // Query A: Returns Filed count for current FY
+  const { data: fyDeadlines } = gstinId ? await supabase
+    .from('compliance_deadlines')
+    .select('status, return_type, period_month, period_year, due_date')
+    .eq('company_id', member.company_id)
+    .eq('gstin_id', gstinId)
+    .gte('due_date', `${fyYear}-04-01`)
+    .lte('due_date', `${fyYear + 1}-03-31`)
+    .order('due_date', { ascending: false }) : { data: null }
+
+  const filedCount = fyDeadlines?.filter(d => d.status === 'filed').length ?? 0
+  const totalCount = fyDeadlines?.length ?? 0
+  const returnsDueSub = fyDeadlines?.filter(d => d.status === 'overdue' || d.status === 'pending').length === 1
+    ? '1 due this month'
+    : `${fyDeadlines?.filter(d => d.status === 'overdue' || d.status === 'pending').length ?? 0} pending`
+
+  // Query B: Latest GSTR-3B draft for tax payable
+  const { data: latestDraft } = gstinId ? await supabase
+    .from('compliance_deadlines')
+    .select('tax_payable, period_month, period_year')
+    .eq('company_id', member.company_id)
+    .eq('gstin_id', gstinId)
+    .eq('return_type', 'GSTR-3B')
+    .eq('status', 'draft')
+    .order('period_year', { ascending: false })
+    .order('period_month', { ascending: false })
+    .limit(1)
+    .maybeSingle() : { data: null }
+
+  const taxPayableStr = latestDraft?.tax_payable
+    ? `₹${fmt(latestDraft.tax_payable / 100)}`
+    : '—'
+  const taxPayableSub = latestDraft
+    ? `GSTR-3B · ${MONTHS[(latestDraft.period_month ?? 1) - 1]} ${latestDraft.period_year}`
+    : 'No draft yet'
+
+  // Query C: ITC available — purchase vouchers this month (sum of tax amounts)
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10)
+  const monthEnd   = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().slice(0, 10)
+
+  const { data: purchases } = gstinId ? await supabase
+    .from('vouchers')
+    .select('igst_amount, cgst_amount, sgst_amount')
+    .eq('gstin_id', gstinId)
+    .eq('voucher_type', 'purchase_invoice')
+    .eq('status', 'finalized')
+    .gte('invoice_date', monthStart)
+    .lte('invoice_date', monthEnd) : { data: null }
+
+  const itcPaise = purchases?.reduce(
+    (s, v) => s + (v.igst_amount ?? 0) + (v.cgst_amount ?? 0) + (v.sgst_amount ?? 0), 0
+  ) ?? 0
+  const itcStr = itcPaise > 0 ? `₹${fmt(itcPaise / 100)}` : '—'
+  const itcSub = itcPaise > 0
+    ? `${MONTHS[today.getMonth()]} ${today.getFullYear()}`
+    : 'Import GSTR-2B to reconcile'
+
+  // Calendar: most recent 4 deadlines from FY query
+  const calendarRows = (fyDeadlines ?? []).slice(0, 4).map(d => {
+    const due = new Date(d.due_date)
+    const dueLabel = `${due.getDate()} ${MONTHS[due.getMonth()]} ${due.getFullYear()}`
+    return {
+      title: `${d.return_type} · ${MONTHS[(d.period_month ?? 1) - 1]} ${d.period_year}`,
+      due: dueLabel,
+      status: mapStatus(d.status),
+    }
+  })
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '40px 24px' }}>
@@ -105,10 +192,10 @@ export default async function DashboardPage() {
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
         gap: 16, marginBottom: 40,
       }}>
-        <StatCard label="ITC Available"  value="₹2,14,800" sub="Updated 2 hrs ago" accent />
-        <StatCard label="Tax Payable"    value="₹48,220"   sub="GSTR-3B · Apr 2026" />
-        <StatCard label="Returns Filed"  value="8 / 9"     sub="1 due this month" />
-        <StatCard label="Mismatches"     value="3"         sub="In GSTR-2B vs 2A" />
+        <StatCard label="ITC Available"  value={itcStr}                          sub={itcSub} accent />
+        <StatCard label="Tax Payable"    value={taxPayableStr}                   sub={taxPayableSub} />
+        <StatCard label="Returns Filed"  value={`${filedCount} / ${totalCount}`} sub={returnsDueSub} />
+        <StatCard label="Mismatches"     value="—"                               sub="Import GSTR-2B to reconcile" />
       </div>
 
       {/* Two column content */}
@@ -118,10 +205,10 @@ export default async function DashboardPage() {
           <div style={{ fontSize: 13, fontWeight: 500, color: '#1e2118', marginBottom: 20 }}>
             Compliance calendar
           </div>
-          <TaskRow title="GSTR-1 · Apr 2026"  due="11 May 2026" status="upcoming" />
-          <TaskRow title="GSTR-3B · Apr 2026" due="20 May 2026" status="upcoming" />
-          <TaskRow title="GSTR-1 · Mar 2026"  due="11 Apr 2026" status="done" />
-          <TaskRow title="GSTR-3B · Mar 2026" due="20 Apr 2026" status="done" />
+          {calendarRows.length > 0
+            ? calendarRows.map(r => <TaskRow key={r.title} title={r.title} due={r.due} status={r.status} />)
+            : <p style={{ fontSize: 12, color: '#9aa090' }}>No deadlines found for this FY.</p>
+          }
         </div>
 
         {/* Quick actions */}
@@ -129,27 +216,32 @@ export default async function DashboardPage() {
           <div style={{ fontSize: 13, fontWeight: 500, color: '#e8ddb5', marginBottom: 20 }}>
             Quick actions
           </div>
-          {[
-            { label: 'Reconcile ITC',  desc: 'Match GSTR-2A vs 2B',    icon: '⇄' },
-            { label: 'Build GSTR-1',   desc: 'Auto-fill from Tally data', icon: '↗' },
-            { label: 'Build GSTR-3B',  desc: 'Compute tax payable',     icon: '↗' },
-          ].map(item => (
-            <button
+          {([
+            { label: 'Reconcile ITC',  desc: 'Match GSTR-2A vs 2B',       icon: '⇄', href: '/dashboard/itc' },
+            { label: 'Build GSTR-1',   desc: 'Auto-fill from Tally data',  icon: '↗', href: '/dashboard/returns' },
+            { label: 'Build GSTR-3B',  desc: 'Compute tax payable',        icon: '↗', href: '/dashboard/returns' },
+          ] as const).map(item => (
+            <a
               key={item.label}
-              style={{
-                width: '100%', background: 'rgba(90,122,58,0.1)',
-                border: '0.5px solid rgba(90,122,58,0.2)',
-                borderRadius: 8, padding: '12px 14px',
-                display: 'flex', alignItems: 'center', gap: 12,
-                cursor: 'pointer', marginBottom: 10, textAlign: 'left',
-              }}
+              href={item.href}
+              style={{ textDecoration: 'none', display: 'block', marginBottom: 10 }}
             >
-              <span style={{ fontSize: 16, color: '#7ea860', width: 20, textAlign: 'center' }}>{item.icon}</span>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#e8ddb5' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: 'rgba(232,221,181,0.4)', marginTop: 1 }}>{item.desc}</div>
+              <div
+                style={{
+                  width: '100%', background: 'rgba(90,122,58,0.1)',
+                  border: '0.5px solid rgba(90,122,58,0.2)',
+                  borderRadius: 8, padding: '12px 14px',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ fontSize: 16, color: '#7ea860', width: 20, textAlign: 'center' }}>{item.icon}</span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: '#e8ddb5' }}>{item.label}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(232,221,181,0.4)', marginTop: 1 }}>{item.desc}</div>
+                </div>
               </div>
-            </button>
+            </a>
           ))}
         </div>
       </div>
