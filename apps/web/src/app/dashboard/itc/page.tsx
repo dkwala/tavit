@@ -101,7 +101,7 @@ export default async function ITCPage({
 
   // ── Reconciliation ────────────────────────────────────────────────────────────
 
-  type B2bRow = (typeof b2bRows)[number] & { invoice_no: string; supplier_gstin: string; invoice_date: string; taxable_value: number; igst: number; cgst: number; sgst: number }
+  type B2bRow = NonNullable<typeof b2bRows>[number] & { invoice_no: string; supplier_gstin: string; invoice_date: string; taxable_value: number; igst: number; cgst: number; sgst: number }
 
   const b2bMap = new Map<string, B2bRow>()
   for (const row of (b2bRows ?? []) as B2bRow[]) {
